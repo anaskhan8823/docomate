@@ -8,7 +8,506 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<style>
+/* Concept: an engineering drawing sheet. Cool drafting-paper greys, deep ink navy, and one markup colour (the magenta of a revision cloud) that appears only where something changed or is current. Archivo carries display and UI at different widths. Plex Mono is reserved for document numbers and revisions. */
+:root {
+  color-scheme: light;
+  --bg: #fbfaf6; --surface: #ffffff; --surface-2: #f5f3ec; --surface-3: #ebe8df;
+  --fg: #13201a; --fg-2: #3a4a42; --muted: #69776f;
+  --line: #ddd9cc; --line-2: #eae7dd;
+  --accent: #0b6b4c; --accent-fg: #ffffff; --accent-soft: #dff0e8;
+  --link: #0b6b4c;
+  --mark: #c0275f; --mark-bg: #fce6ee;
+  --ok: #1a6b46; --ok-bg: #e0f1e8;
+  --warn: #85560a; --warn-bg: #fbefd3;
+  --bad: #a22b2b; --bad-bg: #f9e1df;
+  --ifc: #1b4f9e; --ifc-bg: #e0eaf8;
+  --ifa: #a2441b; --ifa-bg: #fde7dc;
+  --iss: #0e6b57; --iss-bg: #dcf1ea;
+  --sup: #69776f; --sup-bg: #ebe8df;
+  --brand-dark: #08382a; --sand: #f1ede1; --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --crit: #d03b3b;
+  --sh-1: 0 1px 0 rgba(12,26,44,.04), 0 1px 3px rgba(12,26,44,.07);
+  --sh-2: 0 28px 64px -28px rgba(12,26,44,.42), 0 2px 8px rgba(12,26,44,.08);
+  --font-ui: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 56px; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-stretch: 108%; }
+p { margin: 0; }
+.c { max-width: 1160px; margin-inline: auto; }
+.mono { font-family: var(--font-mono); font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fine { color: var(--muted); font-size: 12.5px; }
+.muted { color: var(--muted); }
+.ic { flex: none; }
+
+/* buttons */
+.btn, .btn-g { border-radius: 8px; padding: 9px 16px; font-weight: 550; cursor: pointer; border: 1px solid transparent; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; }
+.btn { background: var(--accent); color: var(--accent-fg); box-shadow: var(--sh-1); }
+.btn:hover { filter: brightness(1.15); }
+.btn:disabled, .btn-g:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.btn-g { background: var(--surface); border-color: var(--line); box-shadow: var(--sh-1); }
+.btn-g:hover:not(:disabled) { border-color: var(--fg-2); }
+.btn-s { padding: 5px 11px; font-size: 12.5px; border-radius: 6px; }
+.link { background: none; border: 0; padding: 6px 8px; cursor: pointer; color: var(--fg-2); border-radius: 6px; }
+.link:hover { color: var(--fg); background: var(--surface-3); }
+
+/* status pills, tags, revision marker */
+.pill { display: inline-block; font: 500 11px/1 var(--font-mono); padding: 4px 7px; border-radius: 4px; white-space: nowrap; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); }
+.pill.warn { color: var(--warn); background: var(--warn-bg); }
+.pill.bad { color: var(--bad); background: var(--bad-bg); }
+.pill.info, .pill.ifc { color: var(--ifc); background: var(--ifc-bg); }
+.pill.ifa { color: var(--ifa); background: var(--ifa-bg); }
+.pill.iss { color: var(--iss); background: var(--iss-bg); }
+.pill.sup { color: var(--sup); background: var(--sup-bg); }
+.tagp { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.tagp.on { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 35%, transparent); background: var(--ok-bg); }
+.rv { display: inline-grid; place-items: end center; width: 24px; height: 22px; padding-bottom: 3px; clip-path: polygon(50% 0, 100% 100%, 0 100%); background: var(--mark); color: #fff; font: 600 10px/1 var(--font-mono); vertical-align: middle; }
+.rv.old { background: var(--sup-bg); color: var(--sup); }
+.rv.lg { width: 36px; height: 32px; padding-bottom: 4px; font-size: 14px; }
+.cite { display: inline-block; margin: 2px 4px 2px 2px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); font: 400 11.5px/1.5 var(--font-mono); color: var(--link); cursor: pointer; vertical-align: baseline; }
+.cite:hover { border-color: var(--link); }
+.note { border-left: 3px solid var(--mark); background: var(--mark-bg); padding: 9px 12px; border-radius: 0 6px 6px 0; font-size: 13px; }
+
+/* ===== product site ===== */
+.sitebar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); margin-inline: -16px; padding-inline: 16px; }
+.sitebar .c { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 11px; }
+.wordmark { font-stretch: 112%; font-weight: 700; font-size: 20px; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 9px; background: none; border: 0; padding: 0; cursor: pointer; color: var(--fg); }
+.wordmark .rv { width: 22px; height: 20px; }
+.sitenav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.sitenav .btn { margin-left: 8px; }
+
+.hero { padding-block: 64px 72px; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 52px; align-items: center; }
+.kicker { font-size: 13.5px; color: var(--mark); font-weight: 600; margin-bottom: 18px; }
+.hero h1 { font-size: clamp(40px, 5.8vw, 68px); line-height: 1; letter-spacing: -0.035em; font-weight: 700; font-stretch: 118%; }
+.lede { margin-top: 22px; font-size: 17.5px; color: var(--fg-2); max-width: 44ch; line-height: 1.55; }
+.hero .btns { margin-top: 30px; }
+.proof { list-style: none; margin: 30px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; color: var(--fg-2); font-size: 14px; }
+.proof li { display: flex; gap: 10px; align-items: flex-start; }
+.proof li::before { content: ""; flex: none; width: 7px; height: 7px; margin-top: 7px; background: var(--mark); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.sheet-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--sh-2); overflow: hidden; min-width: 0; }
+.sheet-svg { display: block; width: 100%; height: auto; background: var(--surface); }
+.sheet-svg text { font-family: var(--font-ui); fill: var(--fg); }
+.sheet-svg .m { font-family: var(--font-mono); }
+.sheet-svg .mu { fill: var(--muted); }
+.sheet-svg .gl { stroke: var(--muted); stroke-width: 0.8; stroke-dasharray: 14 3 2 3; }
+.sheet-svg .cloud { fill: var(--surface); stroke: var(--mark); stroke-width: 1.8; }
+.sheet-svg .cloud.draw { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw 1.5s 0.5s cubic-bezier(.4, 0, .2, 1) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.hq { border-top: 1px solid var(--line); padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+.hq-h { font-weight: 600; font-stretch: 108%; }
+.hq-ans { min-height: 118px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+.hq-ans p { margin: 0; }
+
+.sec { padding-block: 80px; border-top: 1px solid var(--line); }
+.sec h2 { font-size: clamp(28px, 3.8vw, 42px); line-height: 1.08; letter-spacing: -0.03em; max-width: 22ch; font-stretch: 114%; font-weight: 650; }
+.sec .intro { margin-top: 14px; color: var(--fg-2); max-width: 60ch; font-size: 16px; line-height: 1.55; }
+.fn { margin-top: 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--sh-1); overflow: hidden; }
+.fn-h { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.fn-h b { font-weight: 600; font-stretch: 108%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; padding: 3px; background: var(--surface-2); gap: 2px; }
+.seg button { border: 0; background: none; padding: 6px 13px; border-radius: 6px; cursor: pointer; color: var(--fg-2); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.fn-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) 48px; gap: 8px 24px; padding: 16px 20px; border-bottom: 1px solid var(--line-2); align-items: center; }
+.fn-row:last-child { border-bottom: 0; }
+.fn-row h4 { font-size: 15px; font-weight: 600; }
+.fn-row p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.fn-bar { height: 26px; border-radius: 5px; background: var(--surface-3); position: relative; overflow: hidden; }
+.fn-bar i { position: absolute; inset: 0 auto 0 0; background: var(--s1); border-radius: 5px; min-width: 4px; transition: width 0.6s cubic-bezier(.2, .7, .2, 1); }
+.fn-row:last-child .fn-bar i { background: var(--fg); }
+.fn-n { font-stretch: 112%; font-weight: 650; font-size: 20px; text-align: right; font-variant-numeric: tabular-nums; }
+.fn-f { padding: 14px 20px; border-top: 1px solid var(--line); background: var(--surface-2); color: var(--fg-2); font-size: 13.5px; }
+.split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; align-items: center; }
+.pts { list-style: none; margin: 24px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.pts li { display: flex; gap: 12px; color: var(--fg-2); font-size: 15px; line-height: 1.5; }
+.pts li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 8px; background: var(--mark); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.dcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--sh-2); overflow: hidden; min-width: 0; }
+.dcard-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.dcard-b { padding: 6px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; margin-top: 36px; }
+.mod { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; box-shadow: var(--sh-1); }
+.mod-i { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--fg); display: grid; place-items: center; }
+.mod h3 { font-size: 18px; font-weight: 650; display: flex; justify-content: space-between; align-items: center; gap: 8px; letter-spacing: -0.01em; }
+.mod p { color: var(--fg-2); font-size: 14px; }
+.mod ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.mod .btn-g { align-self: flex-start; margin-top: 6px; }
+.mod.plan { background: transparent; border-style: dashed; box-shadow: none; }
+.subh { margin-top: 40px; font-size: 15px; font-weight: 600; color: var(--fg-2); }
+.band { margin-block: 24px 28px; border-radius: 16px; background: var(--fg); color: var(--bg); padding: 44px; display: flex; flex-wrap: wrap; gap: 20px 32px; justify-content: space-between; align-items: center; }
+.band h2 { font-size: clamp(26px, 3.4vw, 38px); letter-spacing: -0.03em; font-stretch: 114%; max-width: 20ch; line-height: 1.1; }
+.band p { margin-top: 8px; opacity: 0.8; max-width: 48ch; }
+.band .btn { background: var(--bg); color: var(--fg); }
+.band .btn-g { background: transparent; color: var(--bg); border-color: color-mix(in srgb, var(--bg) 40%, transparent); box-shadow: none; }
+.foot { padding-block: 8px 20px; color: var(--muted); font-size: 12.5px; }
+
+/* ===== app ===== */
+.appbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); margin-inline: -16px; padding-inline: 16px; }
+.appbar .in { max-width: 1440px; margin-inline: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-block: 10px; }
+.appbar .sp { flex: 1; }
+.projsel { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding-left: 10px; box-shadow: var(--sh-1); min-width: 0; }
+.projsel select { border: 0; background-color: transparent; width: auto; max-width: 240px; padding-left: 4px; font-weight: 550; }
+.pcode { color: var(--mark); font-weight: 500; }
+.gask { flex: 1 1 260px; max-width: 540px; position: relative; }
+.gask .ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.gask input[type="text"] { padding: 9px 12px 9px 36px; background: var(--surface); box-shadow: var(--sh-1); border-radius: 9px; }
+.appbar select#role { width: auto; background-color: var(--surface); box-shadow: var(--sh-1); border-radius: 9px; }
+.who { display: flex; flex-direction: column; line-height: 1.2; font-size: 12.5px; }
+.who b { font-weight: 600; }
+.who span { color: var(--muted); }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; font-weight: 650; font-size: 12.5px; flex: none; }
+.shell { max-width: 1440px; margin-inline: auto; padding-block: 20px; display: grid; grid-template-columns: 218px minmax(0, 1fr); gap: 24px; align-items: start; }
+.nav { display: flex; flex-direction: column; gap: 2px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); }
+.nvsep { height: 1px; background: var(--line); margin: 8px 6px; }
+.nv { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: none; border: 0; border-radius: 8px; padding: 9px 10px; cursor: pointer; color: var(--fg-2); }
+.nv .lb { flex: 1; }
+.nv:hover { background: var(--surface-3); color: var(--fg); }
+.nv[aria-current="page"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: var(--sh-1), inset 3px 0 0 var(--mark); }
+.badge { font: 500 11px var(--font-mono); background: var(--accent-soft); color: var(--fg); border-radius: 10px; padding: 1px 7px; }
+.badge.bad { background: var(--bad-bg); color: var(--bad); }
+.navnote { margin: 14px 6px 0; color: var(--muted); font-size: 12.5px; }
+.main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.ph { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 16px; }
+.ph h2 { font-size: 28px; font-weight: 650; letter-spacing: -0.025em; font-stretch: 114%; }
+.ph .sub { color: var(--muted); margin-top: 3px; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.callout { display: flex; gap: 10px; align-items: flex-start; background: var(--mark-bg); border: 1px solid color-mix(in srgb, var(--mark) 25%, transparent); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; }
+.callout .ic { color: var(--mark); margin-top: 2px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--sh-1); min-width: 0; }
+.panel-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.panel-h h3 { font-size: 15px; font-weight: 650; }
+.panel-b { padding: 16px 18px 18px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.toolbar input[type="search"] { flex: 1 1 200px; width: auto; }
+.toolbar select { width: auto; }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 660px; }
+th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tr[data-act] { cursor: pointer; }
+tr[data-act]:hover { background: var(--surface-2); }
+tr.sup td { color: var(--muted); }
+tr.sup .ttl { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+tr.flash td { animation: flash 2.6s ease-out 1; }
+@keyframes flash { from { background: var(--mark-bg); } to { background: transparent; } }
+.ftype { display: inline-block; font: 500 10.5px/1 var(--font-mono); border: 1px solid var(--line); border-radius: 3px; padding: 2px 4px; color: var(--muted); }
+.empty { padding: 32px 16px; text-align: center; color: var(--muted); }
+.dz-on { outline: 2px dashed var(--mark); outline-offset: -4px; }
+.dzfoot { padding: 11px 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; }
+
+/* dashboard */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--sh-1); padding: 16px 18px; display: flex; flex-direction: column; gap: 3px; text-align: left; cursor: pointer; position: relative; min-height: 124px; }
+.tile:hover { border-color: var(--fg-2); }
+.tile .k { color: var(--fg-2); font-size: 13.5px; }
+.tile b { font-size: 40px; font-weight: 650; font-stretch: 114%; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.tile .f { color: var(--muted); font-size: 12.5px; max-width: calc(100% - 96px); }
+.tile .spark { position: absolute; right: 14px; bottom: 14px; }
+.tile.alert b { color: var(--crit); }
+.cols2 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.stack { display: flex; gap: 2px; height: 16px; }
+.stack i { display: block; height: 100%; min-width: 5px; border-radius: 4px; }
+.legend { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.legend li { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--fg-2); }
+.sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.hb { display: grid; grid-template-columns: 176px minmax(0, 1fr) 30px; gap: 12px; align-items: center; padding: 6px 0; font-size: 13px; }
+.hb .t { color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar { height: 10px; border-radius: 5px; background: var(--surface-3); overflow: hidden; }
+.hbar i { display: block; height: 100%; border-radius: 5px; background: var(--s1); min-width: 0; }
+.hbar i.crit { background: var(--crit); }
+.hb .n { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sub-h { font-size: 13px; color: var(--muted); margin: 18px 0 4px; }
+.plot { position: relative; height: 176px; margin-top: 4px; background-image: repeating-linear-gradient(to top, transparent 0, transparent 43px, var(--line-2) 43px, var(--line-2) 44px); border-bottom: 1px solid var(--line); }
+.plot .row { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.cw { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-width: 0; }
+.tot { text-align: center; font-size: 12px; color: var(--fg-2); font-variant-numeric: tabular-nums; padding-bottom: 3px; }
+.cs { display: flex; flex-direction: column-reverse; }
+.cs i { display: block; margin-top: 2px; min-height: 3px; cursor: default; }
+.cs i:last-child { border-radius: 4px 4px 0 0; }
+.xl { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; margin-top: 7px; }
+.xl span { text-align: center; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.feed li { display: flex; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line-2); align-items: flex-start; min-width: 0; }
+.feed .ico { width: 30px; height: 30px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center; flex: none; color: var(--fg-2); }
+.feed .tx { min-width: 0; font-size: 13.5px; }
+.feed .tx .mono { overflow-wrap: anywhere; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 11px 18px; border-bottom: 1px solid var(--line-2); cursor: pointer; }
+.list li:last-child { border-bottom: 0; }
+.list li:hover { background: var(--surface-2); }
+.list .grow { flex: 1 1 200px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; text-align: left; color: var(--fg-2); }
+.chip:hover { border-color: var(--fg-2); color: var(--fg); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.chip[aria-pressed="true"] .muted { color: inherit; opacity: 0.7; }
+.chip small { color: var(--mark); font-size: 11.5px; margin-left: 5px; }
+.panel .chips { padding: 12px 18px 0; }
+
+/* ask */
+.scope { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.thread { padding: 20px 18px; display: flex; flex-direction: column; gap: 22px; min-height: 260px; max-height: 64vh; overflow-y: auto; }
+.msg.u { align-self: flex-end; max-width: 88%; background: var(--accent); color: var(--accent-fg); padding: 9px 14px; border-radius: 14px 14px 3px 14px; }
+.msg.a { display: flex; flex-direction: column; gap: 12px; min-width: 0; max-width: 800px; padding-left: 14px; border-left: 2px solid var(--mark); }
+.tag { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.ans p { margin-bottom: 8px; font-size: 15px; line-height: 1.55; }
+.ans p:last-child { margin-bottom: 0; }
+.srcs { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+.src { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface-2); cursor: pointer; display: flex; flex-direction: column; gap: 5px; text-align: left; min-width: 0; }
+.src:hover { border-color: var(--fg-2); }
+.src.old { border-style: dashed; }
+.src.old .src-b { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); color: var(--muted); }
+.src-t { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12.5px; }
+.src-b { font-weight: 550; font-size: 13.5px; line-height: 1.35; }
+.src-r { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+details.trace { border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+details.trace summary { cursor: pointer; padding: 9px 12px; font-size: 13px; color: var(--muted); }
+details.trace[open] summary { border-bottom: 1px solid var(--line); }
+.trace-body { padding: 12px 14px 14px; font-size: 13px; display: flex; flex-direction: column; gap: 12px; }
+.fm-row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+.fm { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; display: flex; flex-direction: column; min-width: 96px; }
+.fm b { font-size: 20px; font-weight: 650; font-stretch: 112%; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.fm span { color: var(--muted); font-size: 12px; }
+.fm.last { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.fm.last span { color: inherit; opacity: 0.75; }
+.steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.hits { min-width: 0; }
+.hits th { background: transparent; padding: 4px 8px 4px 0; font-size: 11.5px; }
+.hits td { padding: 4px 8px 4px 0; border: 0; vertical-align: middle; }
+.bar { height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--s1); }
+.bar.s > i { background: var(--sup); }
+.hits .bar { width: 90px; height: 6px; }
+.composer { border-top: 1px solid var(--line); padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+.composer form { display: flex; gap: 8px; }
+.composer input[type="text"] { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 9px; }
+.panel .composer .chips { padding: 0; }
+
+/* forms */
+input[type="text"], input[type="search"], input[type="date"], select, textarea { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; width: 100%; min-width: 0; }
+input:focus, select:focus, textarea:focus { border-color: var(--link); }
+select { appearance: none; -webkit-appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+textarea { min-height: 84px; resize: vertical; }
+.form { display: flex; flex-direction: column; gap: 14px; }
+.fr { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.f label, .lbl { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.chklist { max-height: 190px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--surface); }
+.chklist label { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
+.chklist .mono { flex: none; }
+.err { color: var(--bad); background: var(--bad-bg); padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+.filebox { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; border: 1px dashed var(--fg-2); border-radius: 10px; padding: 14px; background: var(--surface-2); }
+.filebox input[type="file"] { flex: 1 1 220px; min-width: 0; }
+
+/* document sheet (overlay) */
+.overlay { position: fixed; inset: 0; background: rgba(6, 12, 22, 0.6); backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding: 28px 16px; overflow-y: auto; z-index: 40; }
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--sh-2); width: 100%; max-width: 820px; }
+.sheet-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.sheet-h h3 { margin-top: 4px; font-size: 20px; font-weight: 650; letter-spacing: -0.015em; }
+.sheet-b { padding: 20px; display: flex; flex-direction: column; gap: 22px; }
+.tblock { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1.5px solid var(--fg); border-radius: 3px; background: var(--surface); }
+.tb-c { padding: 9px 12px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tb-c .k { font-size: 11.5px; color: var(--muted); }
+.tb-c b { font-weight: 600; overflow-wrap: anywhere; }
+.tb-c .rw { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.s2 { grid-column: span 2; } .s3 { grid-column: span 3; } .s4 { grid-column: span 4; }
+.banner { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; background: var(--sup-bg); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; }
+.sheet h4 { margin: 0 0 10px; font-size: 14px; font-weight: 650; }
+.sheet h4 span { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin: 0; }
+.meta div { min-width: 0; }
+.meta dt { font-size: 12px; color: var(--muted); }
+.meta dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.tl { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 1.5px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+.tl li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; position: relative; }
+.tl li::before { content: ""; position: absolute; left: -23.5px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--sup); }
+.tl li.cur::before { background: var(--mark); border-color: var(--mark); }
+.hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hist li { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.pg { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--surface-2); margin-bottom: 8px; overflow-wrap: anywhere; line-height: 1.6; }
+.pg.hl { border-color: var(--mark); background: var(--mark-bg); }
+.pg .pn { font: 500 11px var(--font-mono); color: var(--muted); display: block; margin-bottom: 4px; }
+.diff { line-height: 1.8; }
+.diff del { color: var(--bad); background: var(--bad-bg); text-decoration: line-through; border-radius: 3px; padding: 0 3px; }
+.diff ins { color: var(--ok); background: var(--ok-bg); text-decoration: none; border-radius: 3px; padding: 0 3px; font-weight: 550; }
+.body-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); background: var(--fg); color: var(--bg); padding: 11px 18px; border-radius: 10px; box-shadow: var(--sh-2); z-index: 60; max-width: min(92vw, 540px); font-size: 13.5px; }
+#tip { position: fixed; z-index: 70; pointer-events: none; background: var(--fg); color: var(--bg); padding: 7px 10px; border-radius: 7px; font-size: 12.5px; box-shadow: var(--sh-2); max-width: 280px; white-space: pre-line; line-height: 1.4; }
+
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: minmax(0, 1fr); padding-block: 36px 48px; gap: 36px; }
+  .split { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .nav { position: static; flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .nv { width: auto; white-space: nowrap; }
+  .nv[aria-current="page"] { box-shadow: var(--sh-1), inset 0 -3px 0 var(--mark); }
+  .nvsep, .navnote { display: none; }
+  .cols2 { grid-template-columns: minmax(0, 1fr); }
+  .feed { grid-template-columns: minmax(0, 1fr); }
+  .sitenav .link { display: none; }
+  .sec { padding-block: 56px; }
+  .band { padding: 28px; }
+  .fn-row { grid-template-columns: minmax(0, 1fr) 48px; }
+  .fn-row .fn-bar { grid-column: 1 / -1; grid-row: 2; }
+  .tb-c.s2, .tb-c.s3, .tb-c.s4 { grid-column: span 3; }
+  .tblock { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .who { display: none; }
+}
+@media (max-width: 560px) {
+  .tb-c.s2, .tb-c.s3, .tb-c.s4 { grid-column: span 6; }
+  .hb { grid-template-columns: 128px minmax(0, 1fr) 26px; gap: 10px; }
+  .xl span:nth-child(even) { visibility: hidden; }
+  .xl span { font-size: 10.5px; }
+  .plot .row, .xl { gap: 6px; }
+  .tile b { font-size: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  tr.flash td { animation: none; }
+  .sheet-svg .cloud.draw { animation: none; stroke-dashoffset: 0; }
+  .fn-bar i { transition: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* ---- v4 additions ---- */
+.mods.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mods.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mods.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mod .btn-s { align-self: flex-start; margin-top: auto; }
+.subh { margin-top: 44px; font-size: 18px; font-weight: 650; }
+.flow { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+.flow > div { border-top: 3px solid var(--fg); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.flow h3 { font-size: 18px; font-weight: 650; }
+.flow p { color: var(--fg-2); font-size: 14px; }
+.rv.lg { width: 34px; height: 34px; font-size: 14px; }
+.faq { margin-top: 30px; display: flex; flex-direction: column; border-top: 1px solid var(--line); max-width: 820px; }
+.faq details { border-bottom: 1px solid var(--line); padding: 16px 4px; }
+.faq summary { cursor: pointer; font-weight: 600; font-size: 16px; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::after { content: "+"; font-size: 20px; color: var(--muted); }
+.faq details[open] summary::after { content: "\2212"; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq p { margin-top: 10px; color: var(--fg-2); font-size: 15px; max-width: 64ch; }
+.rt { overflow: hidden; }
+.rt table { width: 100%; }
+.tour { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--sh-1); margin-bottom: 18px; overflow: hidden; }
+.tour-h { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.tour-h b { font-size: 16px; }
+.tour-h span { color: var(--muted); font-size: 13px; }
+.tour ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tour li { display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px; border-bottom: 1px solid var(--line-2); }
+.tour li .tk { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: transparent; }
+.tour li.done .tk { background: var(--ok); border-color: var(--ok); color: #fff; }
+.tour li b { display: block; font-size: 14.5px; }
+.tour li p { font-size: 13px; color: var(--muted); margin: 2px 0 8px; }
+.tour .gl { padding: 12px 18px; font-size: 13px; color: var(--fg-2); background: var(--surface-2); border-top: 1px solid var(--line); }
+.backlink { margin: 12px 8px 0; font-size: 13px; }
+@media (max-width: 980px) { .mods.four, .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mods.three { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .mods.four, .mods.three, .mods.two, .flow, .tour ol { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- v5 theme + website look ---- */
+body { background: var(--bg); margin: 0; }
+.btn { background: var(--accent); }
+.btn:hover { filter: none; background: #095a40; }
+.sitebar, .appbar { background: color-mix(in srgb, #fff 88%, transparent); }
+.sitebar .btn { padding: 10px 18px; border-radius: 999px; }
+.hero, .sec.alt { box-shadow: 0 0 0 100vmax var(--hbg, var(--bg)); clip-path: inset(0 -100vmax); }
+.hero { --hbg: #eef5ef; margin-top: 0; padding-block: 72px 80px; }
+.hero h1 { font-size: clamp(40px, 5.4vw, 64px); }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.kicker { color: var(--accent); display: inline-flex; gap: 8px; align-items: center; background: #fff; border: 1px solid #cfe5d8; border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+.kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.hero .btn { padding: 13px 24px; font-size: 15.5px; border-radius: 999px; }
+.hero .btn-g { padding: 12px 22px; font-size: 15.5px; border-radius: 999px; }
+.proof li::before { background: var(--accent); clip-path: none; border-radius: 50%; }
+.sec.alt { --hbg: var(--sand); background: var(--sand); border-top: 0; }
+.sec { border-top: 0; padding-block: 88px; }
+.sec h2 { max-width: 24ch; }
+.sec .eyebrow { display: block; font-size: 13px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.stats { --hbg: #fff; background: #fff; box-shadow: 0 0 0 100vmax #fff; clip-path: inset(0 -100vmax); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding-block: 32px; border-bottom: 1px solid var(--line); }
+.stats div { display: flex; flex-direction: column; gap: 2px; padding-left: 16px; border-left: 3px solid var(--accent); }
+.stats b { font-size: 30px; font-stretch: 112%; letter-spacing: -0.02em; }
+.stats span { color: var(--muted); font-size: 13.5px; }
+.mod { border-radius: 14px; transition: transform .15s, box-shadow .15s; }
+.mod:hover:not(.plan) { transform: translateY(-2px); box-shadow: 0 10px 26px -14px rgba(19,32,26,.35); }
+.mod-i { background: var(--accent-soft); color: var(--accent); }
+.flow > div { border-top-color: var(--accent); }
+.band { background: var(--brand-dark); color: #fff; border-radius: 22px; }
+.band .btn { background: #fff; color: var(--brand-dark); }
+.band .btn:hover { background: #eef5ef; }
+.band .btn-g { color: #fff; border-color: rgba(255,255,255,.45); }
+.nv[aria-current="page"] { box-shadow: var(--sh-1), inset 3px 0 0 var(--accent); color: var(--accent); }
+.fn-row:last-child .fn-bar i { background: var(--accent); }
+.fn-bar i { background: #6fb59a; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tour { border-color: #cfe5d8; }
+.tour-h { background: #eef5ef; }
+.sfoot { margin-bottom: -56px; background: var(--brand-dark); color: #cfe0d7; margin-inline: -16px; padding: 48px 16px 28px; }
+.sfoot .c { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+.sfoot h4 { color: #fff; font-size: 14px; margin-bottom: 12px; }
+.sfoot button.link { color: #cfe0d7; display: block; padding: 4px 0; text-align: left; }
+.sfoot button.link:hover { color: #fff; background: none; }
+.sfoot p { font-size: 13.5px; max-width: 36ch; }
+.sfoot .wordmark { color: #fff; margin-bottom: 12px; }
+.sfoot .legal { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,.15); padding-top: 20px; font-size: 12.5px; color: #9fb8ab; }
+@media (max-width: 980px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sfoot .c { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .sec { padding-block: 56px; } .hero { padding-block: 40px 52px; } }
+
+kbd { font: 500 10.5px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; background: var(--surface-2); color: var(--muted); margin-left: 4px; }
+.qf { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.qf li + li { border-top: 1px solid var(--line-2); }
+.qf button { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; background: var(--surface); border: 0; padding: 10px 12px; cursor: pointer; }
+.qf button:hover, .qf button:focus-visible { background: var(--accent-soft); }
+.qf .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#qf { font-size: 16px; padding: 12px 14px; }
+.sheet-b h4 + .qf { margin-top: 8px; }
+.cm { list-style: none; margin: 8px 0 12px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.cm li { border-left: 3px solid var(--accent); background: var(--surface-2); padding: 8px 12px; border-radius: 0 8px 8px 0; }
+.cm p { margin-top: 3px; }
+.cmform { display: flex; gap: 8px; align-items: flex-end; }
+.cmform textarea { flex: 1; resize: vertical; }
+.actrow { margin-top: 4px; display: flex; gap: 8px; }
+@media (max-width: 640px) { kbd { display: none; } }
+
+.nv .lb small { display: block; font-size: 11.5px; color: var(--muted); font-weight: 400; line-height: 1.3; }
+.nv[aria-current="page"] .lb small { color: var(--fg-2); }
+.nv { padding-block: 7px; }
+.hint { display: flex; gap: 10px; align-items: center; background: #eef5ef; border: 1px solid #cfe5d8; border-radius: 10px; padding: 9px 14px; margin-block: 14px 4px; color: var(--fg-2); font-size: 14px; }
+.hint svg { color: var(--accent); }
+.hint span { flex: 1; }
+.viewlbl { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 640px) { .viewlbl { display: none; } .nv .lb small { display: none; } }
+
+td.mono { white-space: nowrap; }
+.appbar .who span { display: none; }
+.appbar .who b { font-size: 13.5px; }
+.appbar .in { flex-wrap: nowrap; }
+@media (max-width: 900px) { .appbar .in { flex-wrap: wrap; } .appbar .who { display: none; } }
+
+.trk { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; counter-reset: x; }
+.trk li { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); position: relative; }
+.trk .dot { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-3); color: var(--muted); font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.trk li.done .dot { background: var(--ok); color: #fff; }
+.trk li.done.rej .dot { background: var(--bad); }
+.trk li.current { border-color: var(--warn); background: var(--warn-bg); }
+.trk li.current .dot { background: var(--warn); color: #fff; }
+.trk li.skipped { opacity: .5; }
+.wfc { cursor: pointer; }
+.wfc:hover { border-color: var(--accent); }
+.wfb { padding: 4px 18px 16px; }
+.note-b { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 8px; }
+.chk-col { display: flex; flex-direction: column; gap: 6px; }
+.orgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 16px; }
+.orgs .panel { margin: 0; }
+.ppl { list-style: none; margin: 0; padding: 4px 18px 10px; display: flex; flex-direction: column; gap: 10px; }
+.ppl li { display: flex; gap: 10px; align-items: center; }
+.avatar.sm { width: 34px; height: 34px; font-size: 12px; flex: none; }
+</style>
 </head>
 <body>
 <!-- ============ PRODUCT SITE ============ -->
@@ -328,6 +827,1543 @@
 <div id="tip" role="tooltip" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="app.js"></script>
+<script>
+
+//#region seed
+const TODAY = '2026-10-12';
+const d = (no, title, disc, type, rev, status, date, chunks, o) => Object.assign({ no, title, disc, type, rev, status, date, chunks, current: status !== 'SUP', fmt: 'PDF', size: '2.1 MB', by: 'Consultant' }, o || {});
+const SEED = {
+  awt: {
+    code: 'AWT', name: 'Al-Wahah Tower', place: 'Jeddah, G+24 mixed use',
+    docs: [
+      d('AWT-STR-DWG-0101', 'Level 3 Podium Slab, Reinforcement Layout', 'STR', 'Drawing', 'C', 'IFC', '2026-08-05', [[1, 'Level 3 post-tensioned slab thickness is 300 mm. Concrete grade C40/50 with 40 mm cover to bottom reinforcement.'], [2, 'Revision C supersedes Revision B. Slab thickness increased from 250 mm to 300 mm following the transfer beam revision issued under RFI-0142.']], { size: '3.4 MB' }),
+      d('AWT-STR-DWG-0101', 'Level 3 Podium Slab, Reinforcement Layout', 'STR', 'Drawing', 'B', 'SUP', '2026-05-12', [[1, 'Level 3 post-tensioned slab thickness is 250 mm. Concrete grade C40/50 with 40 mm cover to bottom reinforcement.']], { size: '3.1 MB' }),
+      d('AWT-STR-SPC-0004', 'Concrete Works Specification', 'STR', 'Specification', 'A', 'IFC', '2026-02-18', [[7, 'Concrete cube tests shall be taken for every 50 m3 poured, with a minimum of one set per pour per day.'], [9, 'Formwork to slab soffits shall not be stripped before 14 days or until 75% of characteristic strength is reached. Curing shall continue for a minimum of 7 days for OPC mixes.']], { fmt: 'DOCX', size: '640 KB' }),
+      d('AWT-MEP-DWG-0210', 'Level 3 Chilled Water Pipework Layout', 'MEP', 'Drawing', 'B', 'IFC', '2026-07-22', [[1, 'Chilled water supply main on Level 3 is 200 mm diameter, carbon steel, insulated with 50 mm thickness. Design supply temperature is 6 C and return is 12 C.']], { by: 'MEP Subcontractor' }),
+      d('AWT-MEP-SPC-0011', 'HVAC Pipework Specification', 'MEP', 'Specification', 'A', 'IFC', '2026-03-03', [[14, 'Hydrostatic test pressure for chilled water pipework is 1.5 times working pressure, held for 2 hours with no visible leakage.'], [15, 'Hanger spacing for steel pipes up to DN200 shall not exceed 4.5 m.']], { fmt: 'DOCX', size: '880 KB' }),
+      d('AWT-MEP-DWG-0231', 'Fire Alarm Shop Drawings, Levels 1 to 6', 'MEP', 'Drawing', 'A', 'IFA', '2026-09-14', [[1, 'Fire alarm shop drawings show detectors, manual call points and sounders on Levels 1 to 6.']], { by: 'MEP Subcontractor', size: '5.2 MB' }),
+      d('AWT-ARC-DWG-0305', 'Ground Floor Lobby Finishes Plan', 'ARC', 'Drawing', 'D', 'IFC', '2026-06-30', [[1, 'Lobby floor finish is 20 mm polished marble, colour Bianco Carrara, laid on a 40 mm screed.']]),
+      d('AWT-ARC-SPC-0009', 'Facade and Curtain Wall Specification', 'ARC', 'Specification', 'B', 'IFA', '2026-04-11', [[5, 'Curtain wall glazing is an 8+16+8 mm double-glazed low-e unit with a U-value not exceeding 1.6 W/m2K.']], { fmt: 'DOCX', size: '1.2 MB' }),
+      d('AWT-HSE-PLN-0002', 'Site Safety Plan', 'HSE', 'Plan', 'C', 'ISSUED', '2026-01-20', [[6, 'Work at height above 1.8 m requires a permit and a full-body harness with double lanyard.'], [8, 'Hot work permits are valid for one shift only and must be signed off at shift end.']], { by: 'Main Contractor' }),
+      d('AWT-GEN-MIN-0023', 'Progress Meeting Minutes No. 23', 'GEN', 'Minutes', '0', 'ISSUED', '2026-10-01', [[2, 'Structural works are complete to Level 11. Facade mock-up approval is pending. Action: contractor to resubmit the mock-up by 20 Oct 2026.']], { by: 'Main Contractor', size: '310 KB' })
+    ],
+    mail: [
+      { ref: 'AWT-COR-0067', type: 'Notice', subject: 'Delay event, crane relocation', from: 'Main Contractor', to: 'Consultant', date: '2026-09-14', due: '2026-09-28', status: 'Open', disc: 'GEN', body: 'The contractor notifies a delay event of 6 days due to tower crane relocation and claims an extension of time under Clause 8.4. The programme extract is attached to this notice.', attach: [] },
+      { ref: 'AWT-COR-0071', type: 'Instruction', subject: 'Facade mock-up resubmission', from: 'Consultant', to: 'Main Contractor', date: '2026-10-01', due: '2026-10-20', status: 'Open', disc: 'ARC', body: 'Resubmit the curtain wall mock-up for approval by 20 Oct 2026. Include the thermal performance test report with the resubmission.', attach: [['AWT-ARC-SPC-0009', 'B']] },
+      { ref: 'AWT-COR-0064', type: 'Letter', subject: 'Fire alarm shop drawings review comments', from: 'Consultant', to: 'MEP Subcontractor', date: '2026-09-28', due: '2026-10-12', status: 'Open', disc: 'MEP', body: 'The shop drawings for Levels 1 to 6 are returned with comments. Revise and resubmit. Refer to transmittal AWT-TRN-0088.', attach: [['AWT-MEP-DWG-0231', 'A']] },
+      { ref: 'AWT-COR-0059', type: 'Letter', subject: 'Level 3 chilled water insulation query', from: 'MEP Subcontractor', to: 'Consultant', date: '2026-09-20', due: null, status: 'Replied', disc: 'MEP', body: 'Please confirm the insulation thickness for the Level 3 chilled water main shown on AWT-MEP-DWG-0210. Reply: insulation is 50 mm thick as shown.', attach: [['AWT-MEP-DWG-0210', 'B']] },
+      { ref: 'AWT-COR-0052', type: 'Notice', subject: 'Hot work permit reminder', from: 'Main Contractor', to: 'MEP Subcontractor', date: '2026-09-02', due: null, status: 'Sent', disc: 'HSE', body: 'Hot work permits are valid for one shift only. A fire watch must remain in place for 30 minutes after hot work stops.', attach: [['AWT-HSE-PLN-0002', 'C']] }
+    ],
+    trans: [
+      { no: 'AWT-TRN-0088', subject: 'Fire Alarm Shop Drawings Review', from: 'MEP Subcontractor', to: 'Consultant', date: '2026-09-14', purpose: 'For Approval', due: '2026-09-28', disc: 'MEP', docs: [['AWT-MEP-DWG-0231', 'A']], message: 'Fire alarm shop drawings for Levels 1 to 6 are issued for approval.', status: 'Responded', response: { code: 'C', comment: 'Review code C: revise and resubmit within 10 working days. Add sounder circuit loading calculations.', by: 'Consultant', date: '2026-09-28' } },
+      { no: 'AWT-TRN-0091', subject: 'Level 3 Slab Reinforcement Revision C', from: 'Consultant', to: 'Main Contractor', date: '2026-08-05', purpose: 'For Construction', due: null, disc: 'STR', docs: [['AWT-STR-DWG-0101', 'C']], message: 'Revision C is issued for construction. Discard Revision B.', status: 'Issued', response: null },
+      { no: 'AWT-TRN-0095', subject: 'Facade Mock-up Documents', from: 'Main Contractor', to: 'Consultant', date: '2026-10-05', purpose: 'For Approval', due: '2026-10-19', disc: 'ARC', docs: [['AWT-ARC-SPC-0009', 'B']], message: 'Facade specification and mock-up documents are issued for approval.', status: 'Awaiting response', response: null },
+      { no: 'AWT-TRN-0079', subject: 'Level 3 Chilled Water Layout', from: 'MEP Subcontractor', to: 'Consultant', date: '2026-07-22', purpose: 'For Approval', due: '2026-08-05', disc: 'MEP', docs: [['AWT-MEP-DWG-0210', 'B']], message: 'Chilled water pipework layout Revision B is issued for approval.', status: 'Responded', response: { code: 'A', comment: 'Review code A: approved.', by: 'Consultant', date: '2026-08-03' } }
+    ],
+    rfis: [
+      { no: 'AWT-RFI-0142', title: 'Transfer beam at gridline 7', disc: 'STR', from: 'Main Contractor', to: 'Consultant', date: '2026-07-20', due: '2026-08-03', status: 'Answered', question: 'Please confirm the transfer beam depth at gridline 7 given the revised column loads.', answer: 'Transfer beam depth is increased to 1200 mm at gridline 7. Slab thickness on Level 3 is revised to 300 mm. Drawing AWT-STR-DWG-0101 will be reissued as Revision C.', answeredDate: '2026-08-02' },
+      { no: 'AWT-RFI-0138', title: 'Concrete curing in hot weather', disc: 'STR', from: 'Main Contractor', to: 'Consultant', date: '2026-06-15', due: '2026-06-29', status: 'Answered', question: 'Is the 7 day curing period acceptable when ambient temperature is above 40 C?', answer: 'Curing shall continue for a minimum of 10 days when ambient temperature exceeds 40 C. This extends the 7 days in the specification.', answeredDate: '2026-06-25' },
+      { no: 'AWT-RFI-0150', title: 'Fire damper locations, Level 3', disc: 'MEP', from: 'Main Contractor', to: 'Consultant', date: '2026-10-01', due: '2026-10-08', status: 'Open', question: 'Fire damper locations on the Level 3 chilled water riser are not shown on AWT-MEP-DWG-0210. Please confirm.', answer: null, answeredDate: null },
+      { no: 'AWT-RFI-0153', title: 'Lobby marble joint layout', disc: 'ARC', from: 'Main Contractor', to: 'Consultant', date: '2026-10-06', due: '2026-10-16', status: 'Open', question: 'Please confirm the marble joint layout at the lobby entrance threshold.', answer: null, answeredDate: null }
+    ],
+    audit: [
+      { t: '2026-10-12 08:14', user: 'Layla Nasser', action: 'Viewed', obj: 'AWT-STR-DWG-0101 Rev C', disc: 'STR' },
+      { t: '2026-10-09 15:02', user: 'Omar Haddad', action: 'Downloaded', obj: 'AWT-MEP-DWG-0210 Rev B', disc: 'MEP' },
+      { t: '2026-10-06 11:30', user: 'Layla Nasser', action: 'Raised RFI', obj: 'AWT-RFI-0153', disc: 'ARC' },
+      { t: '2026-10-05 09:48', user: 'Layla Nasser', action: 'Issued transmittal', obj: 'AWT-TRN-0095', disc: 'ARC' },
+      { t: '2026-10-01 13:21', user: 'Sara Khalid', action: 'Sent mail', obj: 'AWT-COR-0071', disc: 'ARC' },
+      { t: '2026-09-28 16:40', user: 'Sara Khalid', action: 'Responded to transmittal', obj: 'AWT-TRN-0088 (code C)', disc: 'MEP' },
+      { t: '2026-09-14 10:05', user: 'Omar Haddad', action: 'Uploaded', obj: 'AWT-MEP-DWG-0231 Rev A', disc: 'MEP' },
+      { t: '2026-08-05 09:12', user: 'Sara Khalid', action: 'Superseded', obj: 'AWT-STR-DWG-0101 Rev B', disc: 'STR' }
+    ],
+    chips: [
+      { q: 'What is the slab thickness at Level 3?' },
+      { q: 'What review code did the fire alarm shop drawings get?' },
+      { q: 'How many days of delay did the contractor claim for the crane?' },
+      { q: 'How many days of curing are needed for concrete?' },
+      { q: 'What is the pipe size and insulation of chilled water on Level 3?' },
+      { q: 'What is the wet well base slab thickness?', tag: 'other project, will be refused' }
+    ]
+  },
+  wap: {
+    code: 'WAP', name: 'Wadi Al-Aqiq Pumping Station', place: 'Water infrastructure, 4 pumps',
+    docs: [
+      d('WAP-CIV-DWG-0020', 'Wet Well Plan and Sections', 'CIV', 'Drawing', 'B', 'IFC', '2026-08-19', [[1, 'Wet well internal dimensions are 8.0 m by 6.0 m with a maximum operating depth of 7.5 m.'], [2, 'Wet well base slab thickness is 600 mm using C40 concrete with sulphate-resisting cement. Revision B increases the base slab from 500 mm.']]),
+      d('WAP-CIV-DWG-0020', 'Wet Well Plan and Sections', 'CIV', 'Drawing', 'A', 'SUP', '2026-06-02', [[1, 'Wet well internal dimensions are 8.0 m by 6.0 m with a maximum operating depth of 7.5 m.'], [2, 'Wet well base slab thickness is 500 mm using C40 concrete with sulphate-resisting cement.']]),
+      d('WAP-MEP-DWG-0105', 'Pump Hall Layout', 'MEP', 'Drawing', 'B', 'IFC', '2026-08-27', [[1, 'Three duty pumps and one standby pump are installed, each rated for a flow of 450 L/s at 38 m head.']], { by: 'MEP Subcontractor' }),
+      d('WAP-MEP-SPC-0003', 'Pump Supply Specification', 'MEP', 'Specification', 'A', 'IFC', '2026-04-09', [[6, 'Pumps shall be tested at the manufacturer works, witnessed by the Engineer, with performance acceptance per ISO 9906 Grade 2.']], { fmt: 'DOCX', size: '720 KB' }),
+      d('WAP-ELE-DWG-0301', 'Medium Voltage Single Line Diagram', 'ELE', 'Drawing', 'A', 'IFA', '2026-09-10', [[1, 'The station is fed at 11 kV from two independent feeders with an automatic transfer switch. Transformer rating is 1600 kVA.']], { by: 'Main Contractor' }),
+      d('WAP-CIV-ITP-0007', 'Inspection and Test Plan: Concrete Works', 'CIV', 'ITP', 'A', 'IFC', '2026-05-14', [[2, 'Hold point: Engineer inspection of reinforcement before every concrete pour. Cube strength acceptance is at 28 days.']], { fmt: 'DOCX', size: '450 KB' }),
+      d('WAP-HSE-PLN-0001', 'Confined Space Entry Procedure', 'HSE', 'Plan', 'B', 'ISSUED', '2026-03-25', [[3, 'Gas testing for O2, H2S, LEL and CO is required before every confined space entry. The entry permit is valid for 8 hours.']], { by: 'Main Contractor' })
+    ],
+    mail: [
+      { ref: 'WAP-COR-0014', type: 'Instruction', subject: 'Inlet chamber relocation', from: 'Employer', to: 'Main Contractor', date: '2026-09-21', due: '2026-10-05', status: 'Open', disc: 'CIV', body: 'The Employer instructs a variation to relocate the inlet chamber 3 m east. The contractor shall submit cost and time impact within 14 days.', attach: [] },
+      { ref: 'WAP-COR-0011', type: 'Letter', subject: 'Pump factory witness test dates', from: 'Main Contractor', to: 'Employer', date: '2026-09-12', due: null, status: 'Sent', disc: 'MEP', body: 'Factory witness testing of the duty pumps is proposed for the week of 9 Nov 2026. Please confirm attendance.', attach: [['WAP-MEP-SPC-0003', 'A']] }
+    ],
+    trans: [
+      { no: 'WAP-TRN-0030', subject: 'Wet Well Revision B', from: 'Consultant', to: 'Main Contractor', date: '2026-08-19', purpose: 'For Construction', due: null, disc: 'CIV', docs: [['WAP-CIV-DWG-0020', 'B']], message: 'Revision B is issued for construction. Base slab thickness increased to 600 mm.', status: 'Issued', response: null },
+      { no: 'WAP-TRN-0033', subject: 'MV Single Line Diagram', from: 'Main Contractor', to: 'Consultant', date: '2026-09-10', purpose: 'For Approval', due: '2026-09-24', disc: 'ELE', docs: [['WAP-ELE-DWG-0301', 'A']], message: 'The medium voltage single line diagram is issued for approval.', status: 'Awaiting response', response: null }
+    ],
+    rfis: [
+      { no: 'WAP-RFI-0031', title: 'Dewatering method', disc: 'CIV', from: 'Main Contractor', to: 'Consultant', date: '2026-09-02', due: '2026-09-16', status: 'Answered', question: 'Is wellpoint dewatering acceptable for the wet well excavation?', answer: 'Wellpoint dewatering is approved. Groundwater level shall be maintained 1.0 m below the excavation base at all times.', answeredDate: '2026-09-10' },
+      { no: 'WAP-RFI-0034', title: 'Pump control panel location', disc: 'MEP', from: 'Main Contractor', to: 'Consultant', date: '2026-10-05', due: '2026-10-20', status: 'Open', question: 'Please confirm the location of the pump control panel relative to the MV room.', answer: null, answeredDate: null }
+    ],
+    audit: [
+      { t: '2026-10-08 10:12', user: 'Layla Nasser', action: 'Viewed', obj: 'WAP-CIV-DWG-0020 Rev B', disc: 'CIV' },
+      { t: '2026-10-05 14:30', user: 'Omar Haddad', action: 'Raised RFI', obj: 'WAP-RFI-0034', disc: 'MEP' },
+      { t: '2026-09-21 09:05', user: 'Sara Khalid', action: 'Sent mail', obj: 'WAP-COR-0014', disc: 'CIV' },
+      { t: '2026-09-10 11:18', user: 'Layla Nasser', action: 'Issued transmittal', obj: 'WAP-TRN-0033', disc: 'ELE' },
+      { t: '2026-08-19 09:00', user: 'Sara Khalid', action: 'Superseded', obj: 'WAP-CIV-DWG-0020 Rev A', disc: 'CIV' }
+    ],
+    chips: [
+      { q: 'What is the wet well base slab thickness?' },
+      { q: 'How many pumps are there and what flow is each rated for?' },
+      { q: 'Which gas tests are needed before confined space entry?' },
+      { q: 'What did the Employer instruct about the inlet chamber?' },
+      { q: 'What is the glazing U-value?', tag: 'other project, will be refused' }
+    ]
+  }
+};
+//#endregion seed
+
+//#region core
+const ROLES = {
+  dc:  { label: 'Document Controller', discs: null },
+  sub: { label: 'MEP Subcontractor', discs: ['MEP', 'ELE', 'HSE'] }
+};
+const USERS = {
+  dc:  { name: 'Layla Nasser', org: 'Main Contractor', title: 'Document Controller' },
+  sub: { name: 'Omar Haddad', org: 'MEP Subcontractor', title: 'MEP Coordinator' }
+};
+const DISC = { STR: 'Structural', MEP: 'Mechanical and plumbing', ELE: 'Electrical', ARC: 'Architectural', CIV: 'Civil', HSE: 'Health and safety', GEN: 'General' };
+const STOP = new Set(('a an the is are was were be been of for to in on at by and or with what which who when where how many much does do did can could should would this that these those it its as from into than then there their about per any all each give given tell show name get got me us we our you your please need needed require required requires').split(' '));
+const SYN = { thickness: ['thick', 'depth'], size: ['diameter', 'dimension'], flow: ['capacity'], delay: ['extension'], rated: ['rating'], test: ['testing'] };
+
+function stem(w) {
+  if (w.length > 4 && w.endsWith('ies')) return w.slice(0, -3) + 'y';
+  if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) return w.slice(0, -1);
+  return w;
+}
+function tok(s, dropStop) {
+  const raw = (String(s).toLowerCase().match(/[a-z0-9]+/g) || []);
+  return raw.filter(w => !(dropStop && STOP.has(w))).map(stem);
+}
+function matchTok(q, c) {
+  if (q === c) return true;
+  const a = q.length <= c.length ? q : c, b = q.length <= c.length ? c : q;
+  if (a.length >= 4 && b.startsWith(a)) return true;
+  if (q.length >= 6 && c.length >= 6 && q.slice(0, 6) === c.slice(0, 6)) return true;
+  return false;
+}
+function has(toks, alts) { return alts.some(a => toks.some(c => matchTok(a, c))); }
+function qTerms(q) {
+  const out = [], seen = new Set();
+  tok(q, true).forEach(t => {
+    if (seen.has(t)) return;
+    seen.add(t);
+    out.push([t].concat((SYN[t] || []).map(stem)));
+  });
+  (P.forms || []).forEach(f => out.push({ kind: 'form', key: f.no, ref: f.no, disc: f.disc, current: true, p: 1, text: f.detail + (f.response ? ' Reply: ' + f.response : ''), title: f.title + ' ' + f.type, label: f.no + ' · form' }));
+  return out;
+}
+function canSee(role, disc) { const dd = ROLES[role].discs; return !dd || (disc && dd.includes(disc)); }
+
+function toChunks(text) {
+  const clean = String(text || '').replace(/\r/g, '').slice(0, 200000);
+  const paras = clean.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const out = []; let carry = '';
+  paras.forEach(p => {
+    const t = carry ? carry + ' ' + p : p; carry = '';
+    if (t.length < 60) { carry = t; return; }
+    if (t.length <= 600) { out.push(t); return; }
+    let cur = '';
+    t.split(/(?<=[.!?])\s+/).forEach(s => {
+      if (cur && (cur + ' ' + s).length > 500) { out.push(cur); cur = s; } else cur = cur ? cur + ' ' + s : s;
+    });
+    if (cur) out.push(cur);
+  });
+  if (carry) out.push(carry);
+  return out.slice(0, 40).map((t, i) => [i + 1, t]);
+}
+function buildChunks(P) {
+  const out = [];
+  P.docs.forEach(x => x.chunks.forEach(([p, t]) => out.push({ kind: 'doc', key: x.no + '|' + x.rev, ref: x.no, rev: x.rev, disc: x.disc, current: x.current, p, text: t, title: x.title, label: x.no + ' · Rev ' + x.rev + ' · p.' + p })));
+  P.mail.forEach(m => out.push({ kind: 'mail', key: m.ref, ref: m.ref, disc: m.disc, current: true, p: 1, text: m.body, title: m.subject + ' ' + m.type, label: m.ref + ' · mail' }));
+  P.rfis.forEach(r => out.push({ kind: 'rfi', key: r.no, ref: r.no, disc: r.disc, current: true, p: 1, text: r.question + (r.answer ? ' Answer: ' + r.answer : ''), title: r.title, label: r.no + ' · RFI' }));
+  P.trans.forEach(t => out.push({ kind: 'trans', key: t.no, ref: t.no, disc: t.disc, current: true, p: 1, text: t.message + (t.response ? ' ' + t.response.comment : ''), title: t.subject + ' ' + t.purpose, label: t.no + ' · transmittal' }));
+  return out;
+}
+function pickSentences(text, terms) {
+  const sents = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const sc = sents.map(s => { const tk = tok(s); return terms.filter(a => has(tk, a)).length; });
+  const best = Math.max(0, ...sc);
+  if (best === 0) return sents[0] || text;
+  return sents.map((s, i) => ({ s, i, c: sc[i] }))
+    .filter(x => x.c > 0 && x.c >= best * 0.2)
+    .sort((a, b) => b.c - a.c || a.i - b.i).slice(0, 2)
+    .sort((a, b) => a.i - b.i).map(x => x.s).join(' ');
+}
+const THRESH = 0.7;
+function search(chunks, role, q, hasCurrent) {
+  const terms = qTerms(q);
+  if (!terms.length) return { status: 'empty' };
+  chunks.forEach(c => { if (!c.toks) c.toks = Array.from(new Set(tok(c.text + ' ' + c.title + ' ' + c.ref.replace(/-/g, ' ')))); });
+  const vis = chunks.filter(c => canSee(role, c.disc));
+  const hiddenDiscs = Array.from(new Set(chunks.filter(c => !canSee(role, c.disc)).map(c => c.disc)));
+  const N = vis.length;
+  const w = terms.map(alts => {
+    const df = vis.filter(c => has(c.toks, alts)).length;
+    return Math.log(1 + (N - df + 0.5) / (df + 0.5));
+  });
+  const wsum = w.reduce((a, b) => a + b, 0);
+  const scored = vis.map(c => {
+    let m = 0;
+    terms.forEach((alts, i) => { if (has(c.toks, alts)) m += w[i]; });
+    const cov = m / wsum;
+    return { c, cov, score: cov + 0.04 * m / Math.sqrt(c.toks.length) };
+  }).filter(x => x.cov > 0).sort((a, b) => b.score - a.score);
+  const good = scored.filter(x => x.cov >= THRESH);
+  const cur = good.filter(x => x.c.current);
+  const sup = good.filter(x => !x.c.current);
+  let parts = [];
+  if (cur.length) {
+    const top = cur[0];
+    parts = cur.filter((x, i) => i < 2 && x.cov >= top.cov * 0.85).map(x => ({ c: x.c, sentence: pickSentences(x.c.text, terms) }));
+  }
+  const notes = sup.filter(x => hasCurrent(x.c)).slice(0, 2).map(x => ({ c: x.c, sentence: pickSentences(x.c.text, terms) }));
+  return {
+    status: parts.length ? 'ok' : (sup.length ? 'only_superseded' : 'none'),
+    parts, notes, hiddenDiscs,
+    nChunks: chunks.length, excluded: chunks.length - vis.length,
+    supCount: vis.filter(c => !c.current).length,
+    top: scored.slice(0, 5).map(x => ({ label: x.c.label, cov: x.cov, current: x.c.current }))
+  };
+}
+function nextRev(rev) {
+  rev = String(rev || '').trim();
+  if (/^[A-Y]$/i.test(rev)) return String.fromCharCode(rev.toUpperCase().charCodeAt(0) + 1);
+  if (/^\d+$/.test(rev)) return String(+rev + 1);
+  return '';
+}
+function nextRef(list, field, prefix) {
+  const re = new RegExp('^' + prefix + '-(\\d+)$');
+  let max = 0;
+  list.forEach(x => { const m = re.exec(x[field]); if (m) max = Math.max(max, +m[1]); });
+  return prefix + '-' + String(max + 1).padStart(4, '0');
+}
+function csvEsc(v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function toCsv(rows) { return rows.map(r => r.map(csvEsc).join(',')).join('\n'); }
+function fmtSize(n) { return n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB'; }
+//#endregion core
+
+
+//#region diff
+function wordDiff(a, b) {
+  const A = String(a).split(/\s+/).filter(Boolean), B = String(b).split(/\s+/).filter(Boolean);
+  const n = A.length, m = B.length;
+  const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const ops = []; let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (A[i] === B[j]) { ops.push(['=', A[i]]); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) { ops.push(['-', A[i]]); i++; }
+    else { ops.push(['+', B[j]]); j++; }
+  }
+  while (i < n) ops.push(['-', A[i++]]);
+  while (j < m) ops.push(['+', B[j++]]);
+  const runs = [];
+  ops.forEach(([t, w]) => { const last = runs[runs.length - 1]; if (last && last[0] === t) last[1].push(w); else runs.push([t, [w]]); });
+  const html = runs.map(([t, ws]) => t === '=' ? esc(ws.join(' ')) : (t === '-' ? '<del>' : '<ins>') + esc(ws.join(' ')) + (t === '-' ? '</del>' : '</ins>')).join(' ');
+  return { html, changed: ops.filter(o => o[0] !== '=').length };
+}
+function diffPages(o, n) {
+  const out = [], seen = new Set();
+  n.chunks.forEach(([p, t]) => {
+    seen.add(p);
+    const old = o.chunks.find(c => c[0] === p);
+    if (!old) out.push({ p, kind: 'new', html: '<ins>' + esc(t) + '</ins>' });
+    else { const r = wordDiff(old[1], t); out.push({ p, kind: r.changed ? 'changed' : 'same', html: r.html }); }
+  });
+  o.chunks.forEach(([p, t]) => { if (!seen.has(p)) out.push({ p, kind: 'removed', html: '<del>' + esc(t) + '</del>' }); });
+  return out.sort((a, b) => a.p - b.p);
+}
+//#endregion diff
+/* ---------- state ---------- */
+const D = JSON.parse(JSON.stringify(SEED));
+const S = { view: 'site', tab: 'dash', proj: 'awt', role: 'dc', sel: new Set(), f: { q: '', disc: '', status: '', cur: true }, mailF: 'all', rfiF: 'all', auditF: '', chats: {}, viewed: new Set(), flash: null, up: null };
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtDate = x => { if (!x) return '–'; const d = new Date(x + 'T00:00:00Z'); return ('0' + d.getUTCDate()).slice(-2) + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); };
+const P = () => D[S.proj];
+const user = () => USERS[S.role];
+const vis = x => canSee(S.role, x.disc);
+const daysLate = due => Math.round((Date.parse(TODAY) - Date.parse(due)) / 864e5);
+
+function mailStatus(m) { return m.status === 'Open' && m.due && m.due < TODAY ? 'Overdue' : m.status; }
+function rfiStatus(r) { return r.status === 'Open' && r.due < TODAY ? 'Overdue' : r.status; }
+function transStatus(t) { if (t.status === 'Responded') return 'Responded · ' + t.response.code; return t.status === 'Awaiting response' && t.due && t.due < TODAY ? 'Overdue' : t.status; }
+function pc(s) {
+  s = String(s);
+  if (s === 'SUP') return 'sup';
+  if (s === 'IFC') return 'ifc';
+  if (s === 'IFA') return 'ifa';
+  if (s === 'ISSUED') return 'iss';
+  if (/^Responded · D/.test(s) || s === 'Overdue') return 'bad';
+  if (/^Responded · C/.test(s) || /^(Open|Awaiting)/.test(s)) return 'warn';
+  if (/^(Answered|Replied|Responded|Closed|Approved|Awarded|Done)/.test(s)) return 'ok';
+  if (/^(Rejected|Skipped)/.test(s)) return 'bad';
+  if (/^(In review|Current|Waiting)/.test(s)) return 'warn';
+  return 'info';
+}
+const PILLTXT = { IFC: 'For construction', IFA: 'For approval', ISSUED: 'For information', SUP: 'Superseded' };
+const pill = s => '<span class="pill ' + pc(s) + '"' + (PILLTXT[s] ? ' title="Code ' + esc(s) + '"' : '') + '>' + esc(PILLTXT[s] || s) + '</span>';
+const hhmm = () => { const n = new Date(); return String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); };
+function audit(action, obj, disc) { P().audit.unshift({ t: TODAY + ' ' + hhmm(), user: user().name, action, obj, disc: disc || null }); }
+const auditVisible = e => S.role === 'dc' || (e.disc && canSee(S.role, e.disc));
+let toastTimer = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4200); }
+
+/* ---------- files ---------- */
+function readText(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result || '')); r.onerror = () => rej(r.error); r.readAsText(file); });
+}
+async function extractText(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (['txt', 'md', 'csv', 'json', 'log'].includes(ext) || (file.type || '').startsWith('text/')) return await readText(file);
+  if (ext === 'docx' && window.JSZip) {
+    const z = await window.JSZip.loadAsync(file);
+    const f = z.file('word/document.xml');
+    if (!f) return '';
+    const x = await f.async('string');
+    return x.replace(/<\/w:p>/g, '\n').replace(/<w:tab\/>/g, ' ').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+  }
+  return '';
+}
+async function saveFile(filename, data) {
+  let dl = null;
+  try { dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { dl = null; }
+  if (!dl) {
+    try {
+      const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Saved ' + filename); return true;
+    } catch (e) { toast('Download did not complete.'); return false; }
+  }
+  try {
+    await dl.save({ filename, data });
+    toast('Saved ' + filename);
+    return true;
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'declined') return false;
+    if (code === 'rejected_extension') toast("The demo can't download this file type.");
+    else if (code === 'rate_limited') toast('Another save is waiting for your answer.');
+    else toast('Download did not complete.');
+    return false;
+  }
+}
+function demoCopy(doc) {
+  const lines = ['SAMPLE DATA. Demo copy, not a real project document.', '', 'Document: ' + doc.no + '  Revision: ' + doc.rev, 'Title: ' + doc.title, 'Discipline: ' + (DISC[doc.disc] || doc.disc), 'Status: ' + doc.status + '  Issued: ' + doc.date, ''];
+  doc.chunks.forEach(c => { lines.push('--- Page ' + c[0] + ' ---', c[1], ''); });
+  return lines.join('\n');
+}
+
+/* ---------- shell ---------- */
+const ICON = {
+  dash: '<rect x="3" y="3" width="6.5" height="6.5" rx="1.2"/><rect x="10.5" y="3" width="6.5" height="4.5" rx="1.2"/><rect x="3" y="10.5" width="6.5" height="6.5" rx="1.2"/><rect x="10.5" y="9.5" width="6.5" height="7.5" rx="1.2"/>',
+  docs: '<path d="M6 2.5h5.5L16 7v9.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1z"/><path d="M11.5 2.5V7H16"/><path d="M7.5 11h5M7.5 14h5"/>',
+  mail: '<rect x="2.5" y="4.5" width="15" height="11" rx="1.6"/><path d="M3 6l7 5 7-5"/>',
+  trans: '<path d="M3 7h12M12 4l3 3-3 3M17 13H5M8 10l-3 3 3 3"/>',
+  rfis: '<circle cx="10" cy="10" r="7.5"/><path d="M7.9 8a2.1 2.1 0 1 1 3.2 1.8c-.8.5-1.1.9-1.1 1.7M10 14.2h.01"/>',
+  ask: '<path d="M3.5 4.5h13v9h-7l-4 3v-3h-2z"/><path d="M7 8.2h6M7 10.8h3.5"/>',
+  audit: '<circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/>',
+  info: '<circle cx="10" cy="10" r="7.5"/><path d="M10 9v4.5M10 6.5h.01"/>'
+};
+const ico = (n, s) => '<svg class="ic" width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[n] + '</svg>';
+const TABS = [['dash', 'Dashboard'], ['docs', 'Documents'], ['mail', 'Mail'], ['trans', 'Transmittals'], ['rfis', 'RFIs'], ['ask', 'Ask'], ['forms', 'Forms'], ['work', 'Workflows'], ['tenders', 'Tenders'], ['reports', 'Reports'], ['dir', 'Directory'], ['audit', 'Audit trail']];
+const NAVSUB = { dash: 'Today at a glance', docs: 'Drawings and files', mail: 'Letters and notices', trans: 'Send documents', rfis: 'Questions to designers', ask: 'Ask in plain words', audit: 'Who did what' };
+const NAVGROUPS = [['dash'], ['docs', 'mail', 'trans', 'rfis', 'forms'], ['work', 'tenders'], ['ask', 'reports', 'dir', 'audit']];
+function setView(v) { S.view = v; $('site').hidden = v !== 'site'; $('app').hidden = v !== 'app'; window.scrollTo(0, 0); if (v === 'app') renderApp(); }
+function renderApp() { renderBar(); renderNav(); renderMain(); }
+function renderBar() {
+  $('proj').value = S.proj; $('role').value = S.role; $('pcode').textContent = P().code;
+  const u = user();
+  $('who').innerHTML = '<b>' + esc(u.name) + '</b><span>' + esc(u.title + ', ' + u.org) + '</span>';
+  $('avatar').textContent = u.name.split(' ').map(x => x[0]).join('');
+}
+function counts() {
+  const p = P();
+  const act = openItems().length;
+  const over = openItems().filter(x => x.due && x.due < TODAY).length;
+  return { act, over, mail: p.mail.filter(m => vis(m) && m.status === 'Open').length, trans: p.trans.filter(t => vis(t) && t.status === 'Awaiting response').length, rfis: p.rfis.filter(r => vis(r) && r.status === 'Open').length };
+}
+function renderNav() {
+  const c = counts(), label = Object.fromEntries(TABS);
+  const badge = { dash: c.over ? '<span class="badge bad">' + c.over + '</span>' : '', mail: c.mail ? '<span class="badge">' + c.mail + '</span>' : '', trans: c.trans ? '<span class="badge">' + c.trans + '</span>' : '', rfis: c.rfis ? '<span class="badge">' + c.rfis + '</span>' : '' };
+  $('nav').innerHTML = NAVGROUPS.map(g => g.map(k => '<button type="button" class="nv" data-act="go" data-tab="' + k + '"' + (S.tab === k ? ' aria-current="page"' : '') + '>' + ico(k) + '<span class="lb">' + label[k] + '<small>' + NAVSUB[k] + '</small></span>' + (badge[k] || '') + '</button>').join('')).join('<div class="nvsep"></div>') +
+    '<p class="navnote">Sample data. Nothing here is a real project.</p>';
+}
+function renderMain() {
+  const m = { dash: viewDash, docs: viewDocs, mail: viewMail, trans: viewTrans, rfis: viewRfis, forms: viewForms, work: viewWork, tenders: viewTenders, reports: viewReports, dir: viewDir, ask: viewAsk, audit: viewAudit }[S.tab];
+  $('main').innerHTML = m();
+  if (S.tab === 'docs') fillDocs();
+  if (S.tab === 'ask') renderThread(false);
+}
+function go(tab) { S.tab = tab; renderNav(); renderMain(); window.scrollTo(0, 0); }
+
+/* tooltip: any element with data-tip */
+function initTip() {
+  const tip = $('tip');
+  const pos = (x, y) => {
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let l = x + 14, t = y + 16;
+    if (l + w > window.innerWidth - 8) l = x - w - 14;
+    if (t + h > window.innerHeight - 8) t = y - h - 12;
+    tip.style.left = Math.max(8, l) + 'px'; tip.style.top = Math.max(8, t) + 'px';
+  };
+  const show = (el, x, y) => { tip.textContent = el.dataset.tip; tip.hidden = false; pos(x, y); };
+  document.addEventListener('mouseover', e => { const t = e.target.closest && e.target.closest('[data-tip]'); if (t) show(t, e.clientX, e.clientY); });
+  document.addEventListener('mousemove', e => { if (!tip.hidden) pos(e.clientX, e.clientY); });
+  document.addEventListener('mouseout', e => { const t = e.target.closest && e.target.closest('[data-tip]'); if (t && !(e.relatedTarget && t.contains(e.relatedTarget))) tip.hidden = true; });
+  document.addEventListener('focusin', e => { const t = e.target.closest && e.target.closest('[data-tip]'); if (t) { const r = t.getBoundingClientRect(); show(t, r.left + r.width / 2, r.top); } });
+  document.addEventListener('focusout', () => { tip.hidden = true; });
+  document.addEventListener('click', () => { tip.hidden = true; });
+}
+
+/* ---------- dashboard ---------- */
+const dayN = s => Math.floor(Date.parse(String(s).slice(0, 10) + 'T00:00:00Z') / 864e5);
+const tipAttr = s => ' data-tip="' + esc(s) + '" tabindex="0"';
+function openItems() {
+  const p = P(), out = [];
+  p.trans.filter(t => vis(t) && t.status === 'Awaiting response').forEach(t => out.push({ kind: 'trans', key: t.no, label: 'Transmittal', title: t.subject, due: t.due }));
+  p.rfis.filter(r => vis(r) && r.status === 'Open').forEach(r => out.push({ kind: 'rfi', key: r.no, label: 'RFI', title: r.title, due: r.due }));
+  p.mail.filter(m => vis(m) && m.status === 'Open' && m.due).forEach(m => out.push({ kind: 'mail', key: m.ref, label: 'Mail', title: m.subject, due: m.due }));
+  return out.sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1);
+}
+function weeklySeries(p, n) {
+  const t0 = dayN(TODAY), ws0 = t0 - ((t0 + 3) % 7);
+  const weeks = [];
+  for (let i = n - 1; i >= 0; i--) weeks.push({ start: ws0 - 7 * i, docs: 0, mail: 0, trans: 0, rfis: 0 });
+  const bump = (date, k) => { if (!date) return; const idx = Math.floor((dayN(date) - weeks[0].start) / 7); if (idx >= 0 && idx < n) weeks[idx][k]++; };
+  p.docs.filter(vis).forEach(x => bump(x.date, 'docs'));
+  p.mail.filter(vis).forEach(x => bump(x.date, 'mail'));
+  p.trans.filter(vis).forEach(x => bump(x.date, 'trans'));
+  p.rfis.filter(vis).forEach(x => bump(x.date, 'rfis'));
+  return weeks;
+}
+const weekLabel = n => { const d = new Date(n * 864e5); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()]; };
+function spark(vals) {
+  const w = 84, h = 26, max = Math.max(1, ...vals);
+  const pts = vals.map((v, i) => [(i / (vals.length - 1)) * (w - 6) + 3, h - 4 - (v / max) * (h - 9)]);
+  const d = pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('');
+  const l = pts[pts.length - 1];
+  return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true"><path d="' + d + '" fill="none" stroke="var(--s1)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><circle cx="' + l[0].toFixed(1) + '" cy="' + l[1].toFixed(1) + '" r="2.6" fill="var(--s1)" stroke="var(--surface)" stroke-width="1.5"/></svg>';
+}
+function kpis() {
+  const p = P(), t0 = dayN(TODAY);
+  const cur = p.docs.filter(x => vis(x) && x.current), w = weeklySeries(p, 8);
+  const resp = p.trans.filter(t => vis(t) && t.status === 'Responded' && t.response);
+  const rOpen = p.rfis.filter(r => vis(r) && r.status === 'Open');
+  const over = openItems().filter(x => x.due && x.due < TODAY);
+  return {
+    docs: cur.length, d30: cur.filter(x => t0 - dayN(x.date) <= 30).length,
+    tAwait: p.trans.filter(t => vis(t) && t.status === 'Awaiting response').length,
+    avgT: resp.length ? Math.round(resp.reduce((a, t) => a + (dayN(t.response.date) - dayN(t.date)), 0) / resp.length) : null,
+    rOpen: rOpen.length, oldestR: rOpen.length ? Math.max(...rOpen.map(r => t0 - dayN(r.date))) : null,
+    over: over.length, oldestO: over.length ? Math.max(...over.map(x => daysLate(x.due))) : null,
+    wDocs: w.map(x => x.docs), wTrans: w.map(x => x.trans), wRfis: w.map(x => x.rfis)
+  };
+}
+const tile = (tab, k, v, f, vals, cls) => '<button type="button" class="tile' + (cls ? ' ' + cls : '') + '" data-act="go" data-tab="' + tab + '"><span class="k">' + k + '</span><b>' + v + '</b><span class="f">' + f + '</span>' + (vals ? spark(vals) : '') + '</button>';
+const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+
+function compositionHtml() {
+  const docs = P().docs.filter(vis), cur = docs.filter(x => x.current), supN = docs.length - cur.length, total = Math.max(1, cur.length);
+  const defs = [['IFC', 'Issued for construction', 'var(--s1)'], ['IFA', 'Issued for approval', 'var(--s2)'], ['ISSUED', 'For information', 'var(--s3)']];
+  const cnt = k => cur.filter(x => x.status === k).length;
+  const live = defs.filter(x => cnt(x[0]));
+  const stack = live.map(x => '<i style="flex:' + cnt(x[0]) + ' 1 0; background:' + x[2] + '"' + tipAttr(x[1] + ': ' + cnt(x[0]) + ' of ' + cur.length + ' (' + Math.round(cnt(x[0]) / total * 100) + '%)') + '></i>').join('');
+  const legend = live.map(x => '<li><span class="sw" style="background:' + x[2] + '"></span>' + x[1] + ' <b class="num">' + cnt(x[0]) + '</b></li>').join('');
+  const byD = {}; cur.forEach(x => { byD[x.disc] = (byD[x.disc] || 0) + 1; });
+  const rows = Object.keys(byD).sort((a, b) => byD[b] - byD[a]), mx = Math.max(1, ...Object.values(byD));
+  const disc = rows.map(k => '<div class="hb"' + tipAttr((DISC[k] || k) + ': ' + plural(byD[k], 'current document')) + '><span class="t">' + esc(DISC[k] || k) + '</span><span class="hbar"><i style="width:' + Math.round(byD[k] / mx * 100) + '%"></i></span><span class="n">' + byD[k] + '</span></div>').join('');
+  return '<section class="panel"><div class="panel-h"><h3>Register composition</h3><span class="fine">' + plural(cur.length, 'current document') + (supN ? ', ' + supN + ' superseded kept' : '') + '</span></div><div class="panel-b">' +
+    (cur.length ? '<div class="stack" role="img" aria-label="Current documents by status">' + stack + '</div><ul class="legend">' + legend + '</ul><p class="sub-h">By discipline</p>' + disc : '<p class="muted">No documents visible to this role.</p>') + '</div></section>';
+}
+function activityHtml() {
+  const w = weeklySeries(P(), 8);
+  const defs = [['docs', 'Documents', 'var(--s1)'], ['mail', 'Mail', 'var(--s2)'], ['trans', 'Transmittals', 'var(--s3)'], ['rfis', 'RFIs', 'var(--s4)']];
+  const tot = w.map(x => x.docs + x.mail + x.trans + x.rfis), mx = Math.max(4, ...tot);
+  const cols = w.map((x, i) => {
+    const segs = defs.filter(d => x[d[0]]).map(d => '<i style="flex:' + x[d[0]] + ' 1 0; background:' + d[2] + '"' + tipAttr('Week of ' + weekLabel(x.start) + ': ' + plural(x[d[0]], d[1].toLowerCase().replace(/s$/, ''))) + '></i>').join('');
+    return '<div class="cw"><span class="tot">' + (tot[i] || '') + '</span><div class="cs" style="height: calc((100% - 22px) * ' + (tot[i] / mx).toFixed(3) + ')">' + segs + '</div></div>';
+  }).join('');
+  const sum = tot.reduce((a, b) => a + b, 0);
+  return '<section class="panel"><div class="panel-h"><h3>Items filed per week</h3><span class="fine">' + plural(sum, 'item') + ' in the last 8 weeks</span></div><div class="panel-b">' +
+    '<div class="plot" role="img" aria-label="Items filed per week by type"><div class="row">' + cols + '</div></div>' +
+    '<div class="xl">' + w.map(x => '<span>' + weekLabel(x.start) + '</span>').join('') + '</div>' +
+    '<ul class="legend">' + defs.map(d => '<li><span class="sw" style="background:' + d[2] + '"></span>' + d[1] + '</li>').join('') + '</ul></div></section>';
+}
+function dueHtml() {
+  const items = openItems().filter(x => x.due), t0 = dayN(TODAY), dd = x => dayN(x.due) - t0;
+  const B = [['Overdue', x => dd(x) < 0, 'crit'], ['Next 7 days', x => dd(x) >= 0 && dd(x) <= 7, ''], ['8 to 14 days', x => dd(x) > 7 && dd(x) <= 14, ''], ['Later', x => dd(x) > 14, '']];
+  const rows = B.map(([l, f, c]) => ({ l, c, its: items.filter(f) })), mx = Math.max(1, ...rows.map(r => r.its.length));
+  return '<section class="panel"><div class="panel-h"><h3>When replies are due</h3><span class="fine">' + plural(items.length, 'open item') + '</span></div><div class="panel-b">' +
+    rows.map(r => '<div class="hb"' + tipAttr(r.its.length ? r.its.map(x => x.key + ' ' + x.title).join('\n') : 'Nothing in this range') + '><span class="t">' + r.l + '</span><span class="hbar"><i class="' + r.c + '" style="width:' + Math.round(r.its.length / mx * 100) + '%"></i></span><span class="n">' + r.its.length + '</span></div>').join('') +
+    '<p class="fine" style="margin-top: 10px">Hover a row to see which items it holds.</p></div></section>';
+}
+const FEED_ICON = { Viewed: 'docs', Downloaded: 'docs', Uploaded: 'docs', Superseded: 'docs', 'Exported register': 'docs', 'Raised RFI': 'rfis', 'Answered RFI': 'rfis', 'Issued transmittal': 'trans', 'Responded to transmittal': 'trans', 'Sent mail': 'mail', 'Asked a question': 'ask' };
+const whenOf = t => t.slice(0, 10) === TODAY ? 'today ' + t.slice(11) : fmtDate(t.slice(0, 10));
+
+function viewDash() {
+  const p = P(), k = kpis(), items = openItems();
+  const act = items.slice(0, 7).map(x => {
+    const late = x.due && x.due < TODAY;
+    return '<li data-act="openItem" data-kind="' + x.kind + '" data-key="' + esc(x.key) + '"><span class="tagp">' + x.label + '</span><span class="mono">' + esc(x.key) + '</span><span class="grow">' + esc(x.title) + '</span>' +
+      (late ? pill('Overdue') + '<span class="fine num">' + daysLate(x.due) + ' d late</span>' : '<span class="fine num">due ' + fmtDate(x.due) + '</span>') + '</li>';
+  }).join('') || '<li style="cursor: default" class="muted">Nothing is waiting on you.</li>';
+  const feed = p.audit.filter(auditVisible).slice(0, 8).map(e => '<li><span class="ico">' + ico(FEED_ICON[e.action] || 'info', 16) + '</span><span class="tx"><b>' + esc(e.action) + '</b> <span class="mono">' + esc(e.obj) + '</span><br><span class="fine">' + esc(e.user) + ', ' + esc(whenOf(e.t)) + '</span></span></li>').join('') || '<li class="muted">No activity yet.</li>';
+  const names = (ROLES[S.role].discs || []).map(x => (DISC[x] || x).toLowerCase()).join(', ');
+  return '<div class="ph"><div><h2>' + esc(p.name) + '</h2><p class="sub">' + esc(p.place) + '. Status as of ' + fmtDate(TODAY) + '.</p></div>' +
+    '<div class="btns"><button class="btn-g" type="button" data-act="upload">Upload document</button><button class="btn" type="button" data-act="newTrans">New transmittal</button></div></div>' +
+    (S.role !== 'dc' ? '<div class="callout">' + ico('info', 18) + '<span><b>Limited view.</b> Signed in as ' + esc(ROLES[S.role].label) + ', you can open ' + esc(names) + ' items. Every number on this page counts only those.</span></div>' : '') +
+    '<div class="tiles">' +
+    tile('docs', 'Current documents', k.docs, k.d30 + ' issued in the last 30 days', k.wDocs) +
+    tile('trans', 'Transmittals awaiting reply', k.tAwait, k.avgT != null ? 'Reviews average ' + plural(k.avgT, 'day') : 'No reviews recorded yet', k.wTrans) +
+    tile('rfis', 'Open RFIs', k.rOpen, k.oldestR != null ? 'Oldest open ' + plural(k.oldestR, 'day') : 'None open', k.wRfis) +
+    tile('mail', 'Overdue items', k.over, k.over ? 'Oldest is ' + plural(k.oldestO, 'day') + ' late' : 'Everything is on time', null, k.over ? 'alert' : '') + '</div>' +
+    '<div class="cols2"><section class="panel"><div class="panel-h"><h3>Needs action</h3><span class="fine">Oldest due date first</span></div><ul class="list">' + act + '</ul></section>' + compositionHtml() + '</div>' +
+    '<div class="cols2">' + activityHtml() + dueHtml() + '</div>' +
+    '<section class="panel"><div class="panel-h"><h3>Recent activity</h3><button class="btn-g btn-s" type="button" data-act="go" data-tab="audit">Open audit trail</button></div><ul class="feed">' + feed + '</ul></section>';
+}
+
+/* ---------- documents ---------- */
+const rvMark = x => '<span class="rv' + (x.current ? '' : ' old') + '" title="Revision ' + esc(x.rev) + (x.current ? ', current' : ', superseded') + '">' + esc(x.rev) + '</span>';
+function viewDocs() {
+  const p = P(), vd = p.docs.filter(vis), discs = Array.from(new Set(vd.map(x => x.disc))).sort();
+  const stats = Array.from(new Set(vd.map(x => x.status))).sort();
+  return '<div class="ph"><div><h2>Documents</h2><p class="sub" id="docSub"></p></div><div class="btns">' +
+    '<button class="btn-g" type="button" data-act="exportRegister">Export CSV</button>' +
+    '<button class="btn-g" type="button" id="selBtn" data-act="newTransSel" disabled>Create transmittal</button>' +
+    '<button class="btn" type="button" data-act="upload">Upload document</button></div></div>' +
+    '<section class="panel" id="dz"><div class="chips" id="docChips"></div><div class="toolbar">' +
+    '<input type="search" id="fq" placeholder="Search number or title" aria-label="Search documents" value="' + esc(S.f.q) + '">' +
+    '<select id="fdisc" aria-label="Discipline"><option value="">All disciplines</option>' + discs.map(x => '<option value="' + x + '"' + (S.f.disc === x ? ' selected' : '') + '>' + esc(DISC[x] || x) + '</option>').join('') + '</select>' +
+    '<select id="fstat" aria-label="Status"><option value="">All statuses</option>' + stats.map(x => '<option value="' + x + '"' + (S.f.status === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select>' +
+    '<label class="chk"><input type="checkbox" id="fcur"' + (S.f.cur ? ' checked' : '') + '> Current revisions only</label></div>' +
+    '<div class="tablewrap"><table><thead><tr><th></th><th>Doc no.</th><th>Title</th><th>Discipline</th><th>Version</th><th>Status</th><th>Issued</th><th></th></tr></thead><tbody id="docBody"></tbody></table></div>' +
+    '<div class="dzfoot">Drag files onto this table to upload. A new revision of an existing number supersedes the old one automatically.</div></section>';
+}
+function docChipsHtml(list) {
+  const cnt = {}; list.forEach(x => { cnt[x.status] = (cnt[x.status] || 0) + 1; });
+  const opts = [['', 'All', list.length], ['IFC', 'Issued for construction', cnt.IFC], ['IFA', 'Issued for approval', cnt.IFA], ['ISSUED', 'For information', cnt.ISSUED], ['SUP', 'Superseded', cnt.SUP]].filter(o => o[0] === '' || o[2]);
+  return opts.map(([k, l, n]) => '<button type="button" class="chip" data-act="docStatus" data-v="' + k + '" aria-pressed="' + (S.f.status === k) + '">' + l + ' <span class="num muted">' + n + '</span></button>').join('');
+}
+function fillDocs() {
+  const p = P(), f = S.f, q = f.q.trim().toLowerCase();
+  const rows = p.docs.filter(vis).filter(x => (!f.cur || x.current) && (!f.disc || x.disc === f.disc) && (!f.status || x.status === f.status) && (!q || (x.no + ' ' + x.title).toLowerCase().includes(q)))
+    .sort((a, b) => a.no === b.no ? (a.rev < b.rev ? 1 : -1) : (a.no < b.no ? -1 : 1));
+  $('docSub').textContent = p.name + ', showing ' + rows.length + ' of ' + p.docs.filter(vis).length + ' documents';
+  $('docChips').innerHTML = docChipsHtml(p.docs.filter(vis));
+  $('docBody').innerHTML = rows.length ? rows.map(x => {
+    const k = x.no + '|' + x.rev;
+    return '<tr tabindex="0" class="' + (x.current ? '' : 'sup') + (S.flash === k ? ' flash' : '') + '" data-act="doc" data-no="' + esc(x.no) + '" data-rev="' + esc(x.rev) + '">' +
+      '<td><input type="checkbox" data-act="sel" data-key="' + esc(k) + '" aria-label="Select ' + esc(x.no) + '"' + (S.sel.has(k) ? ' checked' : '') + (x.current ? '' : ' disabled') + '></td>' +
+      '<td class="mono">' + esc(x.no) + '</td><td><span class="ttl">' + esc(x.title) + '</span><br><span class="fine">' + esc(x.type) + (x.uploaded ? ', uploaded' : '') + ' <span class="ftype">' + esc(x.fmt) + '</span> ' + esc(x.size) + '</span></td>' +
+      '<td>' + esc(DISC[x.disc] || x.disc) + '</td><td>' + rvMark(x) + '</td><td>' + pill(x.status) + '</td><td class="num">' + fmtDate(x.date) + '</td>' +
+      '<td><button type="button" class="btn-g btn-s" data-act="dlDoc" data-no="' + esc(x.no) + '" data-rev="' + esc(x.rev) + '">Download</button></td></tr>';
+  }).join('') : '<tr><td colspan="8" class="empty">No documents match these filters.</td></tr>';
+  S.flash = null;
+  syncSel();
+}
+function syncSel() { const b = $('selBtn'); if (b) { b.disabled = S.sel.size === 0; b.textContent = S.sel.size ? 'Create transmittal (' + S.sel.size + ')' : 'Create transmittal'; } }
+
+/* ---------- mail ---------- */
+function filterBar(cur, act, opts) { return '<div class="chips">' + opts.map(([k, l]) => '<button type="button" class="chip" data-act="' + act + '" data-v="' + k + '" aria-pressed="' + (cur === k) + '">' + l + '</button>').join('') + '</div>'; }
+function viewMail() {
+  const rows = P().mail.filter(vis).filter(m => S.mailF === 'all' || (S.mailF === 'open' && m.status === 'Open') || (S.mailF === 'over' && mailStatus(m) === 'Overdue') || (S.mailF === 'in' && m.to === user().org) || (S.mailF === 'sent' && m.from === user().org)).sort((a, b) => a.date < b.date ? 1 : -1);
+  return '<div class="ph"><div><h2>Mail</h2><p class="sub">Formal correspondence with reference numbers and response dates</p></div><div class="btns"><button class="btn" type="button" data-act="newMail">New mail</button></div></div>' +
+    filterBar(S.mailF, 'mailF', [['all', 'All'], ['in', 'Inbox'], ['sent', 'Sent'], ['open', 'Open'], ['over', 'Overdue']]) +
+    '<section class="panel"><div class="tablewrap"><table><thead><tr><th>Ref</th><th>Subject</th><th>From to</th><th>Date</th><th>Reply due</th><th>Status</th></tr></thead><tbody>' +
+    (rows.map(m => '<tr tabindex="0" data-act="mail" data-ref="' + esc(m.ref) + '"><td class="mono">' + esc(m.ref) + '</td><td>' + esc(m.subject) + '<br><span class="fine">' + esc(m.type) + '</span></td><td>' + esc(m.from) + '<br><span class="fine">to ' + esc(m.to) + '</span></td><td class="num">' + fmtDate(m.date) + '</td><td class="num">' + fmtDate(m.due) + '</td><td>' + pill(mailStatus(m)) + '</td></tr>').join('') || '<tr><td colspan="6" class="empty">No mail in this view.</td></tr>') +
+    '</tbody></table></div></section>';
+}
+function viewTrans() {
+  const rows = P().trans.filter(vis).sort((a, b) => a.date < b.date ? 1 : -1);
+  return '<div class="ph"><div><h2>Transmittals</h2><p class="sub">Issue document sets and record review codes</p></div><div class="btns"><button class="btn" type="button" data-act="newTrans">New transmittal</button></div></div>' +
+    '<section class="panel"><div class="tablewrap"><table><thead><tr><th>No.</th><th>Subject</th><th>To</th><th>Purpose</th><th>Docs</th><th>Issued</th><th>Reply due</th><th>Status</th></tr></thead><tbody>' +
+    (rows.map(t => '<tr tabindex="0" data-act="trans" data-no="' + esc(t.no) + '"><td class="mono">' + esc(t.no) + '</td><td>' + esc(t.subject) + '</td><td>' + esc(t.to) + '</td><td>' + esc(t.purpose) + '</td><td class="num">' + t.docs.length + '</td><td class="num">' + fmtDate(t.date) + '</td><td class="num">' + fmtDate(t.due) + '</td><td>' + pill(transStatus(t)) + '</td></tr>').join('') || '<tr><td colspan="8" class="empty">No transmittals yet.</td></tr>') +
+    '</tbody></table></div></section>';
+}
+function viewRfis() {
+  const rows = P().rfis.filter(vis).filter(r => S.rfiF === 'all' || (S.rfiF === 'open' && r.status === 'Open') || (S.rfiF === 'over' && rfiStatus(r) === 'Overdue')).sort((a, b) => a.date < b.date ? 1 : -1);
+  return '<div class="ph"><div><h2>RFIs</h2><p class="sub">Requests for information with an owner and a due date</p></div><div class="btns"><button class="btn" type="button" data-act="newRfi">Raise RFI</button></div></div>' +
+    filterBar(S.rfiF, 'rfiF', [['all', 'All'], ['open', 'Open'], ['over', 'Overdue']]) +
+    '<section class="panel"><div class="tablewrap"><table><thead><tr><th>No.</th><th>Subject</th><th>Discipline</th><th>To</th><th>Raised</th><th>Due</th><th>Status</th></tr></thead><tbody>' +
+    (rows.map(r => '<tr tabindex="0" data-act="rfi" data-no="' + esc(r.no) + '"><td class="mono">' + esc(r.no) + '</td><td>' + esc(r.title) + '</td><td class="mono">' + esc(r.disc) + '</td><td>' + esc(r.to) + '</td><td class="num">' + fmtDate(r.date) + '</td><td class="num">' + fmtDate(r.due) + '</td><td>' + pill(rfiStatus(r)) + '</td></tr>').join('') || '<tr><td colspan="7" class="empty">No RFIs in this view.</td></tr>') +
+    '</tbody></table></div></section>';
+}
+function viewAudit() {
+  if (S.role !== 'dc') return '<div class="ph"><div><h2>Audit trail</h2></div></div><section class="panel"><div class="empty">The audit trail is limited to document controllers. Switch "Signed in as" to Document Controller to see it.</div></section>';
+  const acts = Array.from(new Set(P().audit.map(e => e.action))).sort();
+  const rows = P().audit.filter(e => !S.auditF || e.action === S.auditF);
+  return '<div class="ph"><div><h2>Audit trail</h2><p class="sub">Every view, upload, download, issue and reply, newest first</p></div><div class="btns"><button class="btn-g" type="button" data-act="exportAudit">Export CSV</button></div></div>' +
+    '<section class="panel"><div class="toolbar"><select id="faud" aria-label="Action"><option value="">All actions</option>' + acts.map(a => '<option' + (S.auditF === a ? ' selected' : '') + '>' + esc(a) + '</option>').join('') + '</select><span class="fine">' + rows.length + ' events</span></div>' +
+    '<div class="tablewrap"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Object</th></tr></thead><tbody>' +
+    rows.map(e => '<tr><td class="num mono">' + esc(e.t) + '</td><td>' + esc(e.user) + '</td><td>' + esc(e.action) + '</td><td class="mono">' + esc(e.obj) + '</td></tr>').join('') + '</tbody></table></div></section>';
+}
+
+/* ---------- ask ---------- */
+const chatKey = () => S.proj + ':' + S.role;
+function viewAsk() {
+  const p = P(), key = chatKey();
+  const nDocs = p.docs.filter(x => vis(x) && x.current).length, nM = p.mail.filter(vis).length, nR = p.rfis.filter(vis).length, nT = p.trans.filter(vis).length;
+  if (!S.chats[key]) { const q = p.chips[0].q; S.chats[key] = [{ role: 'u', text: q }, { role: 'a', r: runSearch(q) }]; }
+  return '<div class="ph"><div><h2>Ask</h2><p class="sub">Answers use current revisions only and cite their source.</p></div></div>' +
+    '<section class="panel"><div class="scope"><span>Searching</span><span class="tagp on">' + esc(p.code) + ' only</span><span class="tagp">' + nDocs + ' documents</span><span class="tagp">' + nM + ' mail</span><span class="tagp">' + nT + ' transmittals</span><span class="tagp">' + nR + ' RFIs</span>' + (S.role === 'sub' ? '<span class="tagp on">role limited</span>' : '') + '</div>' +
+    '<div class="thread" id="thread" aria-live="polite"></div>' +
+    '<div class="composer"><form id="askForm" autocomplete="off"><input type="text" id="q" placeholder="Ask about drawings, specs, mail, RFIs or transmittals" aria-label="Question"><button class="btn" type="submit">Ask</button></form>' +
+    '<div class="chips">' + p.chips.map((c, i) => '<button type="button" class="chip" data-act="chip" data-i="' + i + '">' + esc(c.q) + (c.tag ? '<small>' + esc(c.tag) + '</small>' : '') + '</button>').join('') + '</div>' +
+    '<p class="fine">Upload a .txt, .md, .csv or .docx file in Documents, then ask about it here. To see role limits, switch "Signed in as" to MEP Subcontractor and ask the first question again.</p></div></section>';
+}
+function runSearch(q) {
+  const p = P();
+  const chunks = buildChunks(p);
+  const r = search(chunks, S.role, q, c => c.kind === 'doc' && p.docs.some(x => x.no === c.ref && x.current));
+  r.nDocs = p.docs.length;
+  const seeable = chunks.filter(c => canSee(S.role, c.disc));
+  r.fn = { all: Object.keys(D).reduce((a, k) => a + buildChunks(D[k]).length, 0), proj: chunks.length, role: seeable.length, cur: seeable.filter(c => c.current).length };
+  return r;
+}
+function citeBtn(c, act) { return '<button type="button" class="cite" data-act="' + (act || 'cite') + '" data-kind="' + c.kind + '" data-key="' + esc(c.key) + '" data-p="' + c.p + '">' + esc(c.label) + '</button>'; }
+const KIND_ICON = { doc: 'docs', mail: 'mail', rfi: 'rfis', trans: 'trans' };
+function srcMeta(c) {
+  const p = P();
+  if (c.kind === 'doc') { const x = p.docs.find(y => y.no === c.ref && y.rev === c.rev); return { kind: x ? x.type : 'Document', title: x ? x.title : c.ref }; }
+  if (c.kind === 'mail') { const x = p.mail.find(y => y.ref === c.ref); return { kind: x ? x.type : 'Mail', title: x ? x.subject : c.ref }; }
+  if (c.kind === 'rfi') { const x = p.rfis.find(y => y.no === c.ref); return { kind: 'RFI', title: x ? x.title : c.ref }; }
+  const x = p.trans.find(y => y.no === c.ref); return { kind: 'Transmittal', title: x ? x.subject : c.ref };
+}
+function sourcesHtml(r) {
+  const items = [], seen = new Set();
+  r.parts.forEach(x => { const k = x.c.key; if (!seen.has(k)) { seen.add(k); items.push({ c: x.c, old: false }); } });
+  r.notes.forEach(x => { const k = x.c.key; if (!seen.has(k)) { seen.add(k); items.push({ c: x.c, old: true }); } });
+  if (!items.length) return '';
+  return '<div><p class="tag" style="margin-bottom: 8px">Sources</p><div class="srcs">' + items.map(it => {
+    const m = srcMeta(it.c);
+    return '<button type="button" class="src' + (it.old ? ' old' : '') + '" data-act="cite" data-kind="' + it.c.kind + '" data-key="' + esc(it.c.key) + '" data-p="' + it.c.p + '">' +
+      '<span class="src-t">' + ico(KIND_ICON[it.c.kind], 15) + esc(m.kind) + '</span><span class="src-b">' + esc(m.title) + '</span>' +
+      '<span class="src-r"><span class="mono">' + esc(it.c.ref) + '</span>' + (it.c.kind === 'doc' ? '<span class="pill ' + (it.old ? 'sup' : 'ifc') + '">Rev ' + esc(it.c.rev) + (it.old ? ', superseded' : '') + '</span><span class="fine">p.' + it.c.p + '</span>' : '') + '</span></button>';
+  }).join('') + '</div></div>';
+}
+function traceHtml(r, open) {
+  const p = P();
+  const roleLine = r.excluded ? 'Role filter: ' + r.excluded + ' passages in ' + r.hiddenDiscs.map(x => DISC[x] || x).join(', ') + ' items are outside this role and were not searched.' : 'Role filter: this role can open every discipline, so nothing was held back.';
+  const rows = r.top.length ? r.top.map(h => '<tr><td class="mono">' + esc(h.label) + '</td><td><div class="bar' + (h.current ? '' : ' s') + '"><i style="width:' + Math.round(h.cov * 100) + '%"></i></div></td><td class="num">' + Math.round(h.cov * 100) + '%</td><td>' + (h.current ? '' : '<span class="pill sup">SUPERSEDED</span>') + '</td></tr>').join('') : '<tr><td colspan="4" class="fine">No passages matched the question.</td></tr>';
+  const fn = r.fn ? '<div class="fm-row"><div class="fm"><b>' + r.fn.all + '</b><span>all projects</span></div><div class="fm"><b>' + r.fn.proj + '</b><span>this project</span></div><div class="fm"><b>' + r.fn.role + '</b><span>your role can open</span></div><div class="fm last"><b>' + r.fn.cur + '</b><span>current revisions searched</span></div></div>' : '';
+  return '<details class="trace"' + (open ? ' open' : '') + '><summary>How this answer was found' + (r.fn ? ' <span class="fine">(' + r.fn.cur + ' current passages searched)</span>' : '') + '</summary><div class="trace-body">' + fn + '<ol class="steps">' +
+    '<li>Project scope: searched only ' + esc(p.code) + ' (' + r.nChunks + ' passages from documents, mail, transmittals and RFIs). Other projects are never queried.</li>' +
+    '<li>' + esc(roleLine) + '</li>' +
+    '<li>Revision filter: ' + r.supCount + ' passage' + (r.supCount === 1 ? '' : 's') + ' from superseded revisions can rank but are never used as the answer.</li>' +
+    '<li>Ranking: best matches below, as the share of the question covered.</li></ol>' +
+    '<div class="tablewrap"><table class="hits"><thead><tr><th>Passage</th><th></th><th>Match</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="fine">Shown for the demo. The demo ranks by keyword coverage in the browser. A production build ranks by embedding similarity (pgvector) and applies the same filters in the database.</p></div></details>';
+}
+function answerHtml(m, open) {
+  const r = m.r; let body = '';
+  if (r.status === 'empty') return '<div class="msg a"><div class="ans"><p>Type a question about this project.</p></div></div>';
+  if (r.status === 'ok') {
+    body = '<div class="tag">Answer from current revisions</div><div class="ans">' + r.parts.map(x => '<p>' + esc(x.sentence) + ' ' + citeBtn(x.c) + '</p>').join('') + '</div>';
+    r.notes.forEach(n => { body += '<div class="note"><b>Not used:</b> ' + esc(n.c.ref) + ' Rev ' + esc(n.c.rev) + ' is superseded. It said: ' + esc(n.sentence) + ' ' + citeBtn(n.c) + '</div>'; });
+    body += sourcesHtml(r);
+  } else if (r.status === 'only_superseded') {
+    body = '<div class="ans"><p>The only match is in a superseded revision, so I will not answer from it. Ask the document controller for the current issue.</p></div>';
+  } else {
+    body = '<div class="ans"><p>I can\'t find this in the documents available to you in this project.' + (r.excluded ? ' Some items in this project are outside your role and are not searched.' : '') + ' This assistant only searches the selected project.</p></div>';
+  }
+  return '<div class="msg a">' + body + traceHtml(r, open) + '</div>';
+}
+function renderThread(scroll) {
+  const t = $('thread'); if (!t) return;
+  const msgs = S.chats[chatKey()] || [];
+  t.innerHTML = msgs.map((m, i) => m.role === 'u' ? '<div class="msg u">' + esc(m.text) + '</div>' : answerHtml(m, false)).join('');
+  if (scroll) t.scrollTop = t.scrollHeight;
+}
+function ask(q) {
+  q = q.trim(); if (!q) return;
+  const key = chatKey(); S.chats[key] = S.chats[key] || [];
+  S.chats[key].push({ role: 'u', text: q }, { role: 'a', r: runSearch(q) });
+  audit('Asked a question', q.length > 60 ? q.slice(0, 57) + '...' : q, null);
+  renderThread(true);
+}
+
+/* ---------- overlay ---------- */
+let lastFocus = null;
+function openOv(ref, title, html) {
+  $('ovS').textContent = ref || ''; $('ovT').textContent = title; $('ovB').innerHTML = html;
+  lastFocus = document.activeElement; $('ov').hidden = false; $('ovX').focus();
+}
+function closeOv() { $('ov').hidden = true; S.up = null; if (lastFocus && lastFocus.focus && document.contains(lastFocus)) lastFocus.focus(); }
+const meta = pairs => '<dl class="meta">' + pairs.map(([k, v]) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>').join('') + '</dl>';
+const docChip = ([no, rev]) => '<button type="button" class="cite" data-act="doc" data-no="' + esc(no) + '" data-rev="' + esc(rev) + '">' + esc(no) + ' · Rev ' + esc(rev) + '</button>';
+
+function changesHtml(prev, doc) {
+  const ch = diffPages(prev, doc).filter(x => x.kind !== 'same');
+  const body = ch.length ? ch.map(x => '<div class="pg"><span class="pn">Page ' + x.p + (x.kind === 'new' ? ', new in this revision' : x.kind === 'removed' ? ', removed in this revision' : '') + '</span><div class="diff">' + x.html + '</div></div>').join('') : '<p class="fine">No text differences were found between these revisions.</p>';
+  return '<div><h4>Changes from Rev ' + esc(prev.rev) + '<span>Removed text is struck through, added text is highlighted.</span></h4>' + body + '</div>';
+}
+function sheetDoc(no, rev, pg) {
+  const p = P(), doc = p.docs.find(x => x.no === no && x.rev === rev); if (!doc) return;
+  const vk = S.proj + no + rev;
+  if (!S.viewed.has(vk)) { S.viewed.add(vk); audit('Viewed', no + ' Rev ' + rev, doc.disc); }
+  const versions = p.docs.filter(x => x.no === no).sort((a, b) => a.rev < b.rev ? 1 : -1);
+  const idx = versions.findIndex(v => v.rev === rev), prev = versions[idx + 1] || null, curDoc = versions.find(v => v.current);
+  const trail = p.audit.filter(e => e.obj.indexOf(no + ' ') === 0 && auditVisible(e)).slice(0, 5);
+  const tb = '<div class="tblock">' +
+    '<div class="tb-c s2"><span class="k">Project</span><b>' + esc(p.name) + '</b><span class="fine">' + esc(p.place) + '</span></div>' +
+    '<div class="tb-c s4"><span class="k">Title</span><b>' + esc(doc.title) + '</b><span class="fine">' + esc(doc.type) + ', ' + esc((DISC[doc.disc] || doc.disc).toLowerCase()) + '</span></div>' +
+    '<div class="tb-c s2"><span class="k">Document no.</span><b class="mono">' + esc(no) + '</b></div>' +
+    '<div class="tb-c"><span class="k">Revision</span><span class="rw"><span class="rv lg' + (doc.current ? '' : ' old') + '">' + esc(doc.rev) + '</span></span></div>' +
+    '<div class="tb-c"><span class="k">Status</span><span class="rw">' + pill(doc.status) + '</span></div>' +
+    '<div class="tb-c s2"><span class="k">Issued</span><b>' + fmtDate(doc.date) + '</b><span class="fine">by ' + esc(doc.by) + '</span></div></div>';
+  const banner = !doc.current && curDoc ? '<div class="banner"><span>This revision is superseded. The current issue is Rev ' + esc(curDoc.rev) + '.</span><button type="button" class="btn-g btn-s" data-act="doc" data-no="' + esc(curDoc.no) + '" data-rev="' + esc(curDoc.rev) + '">Open Rev ' + esc(curDoc.rev) + '</button></div>' : '';
+  const pages = doc.chunks.length ? doc.chunks.map(c => '<div class="pg' + (pg && c[0] === pg ? ' hl' : '') + '"><span class="pn">Page ' + c[0] + '</span>' + esc(c[1]) + '</div>').join('') : '<p class="fine">No text was extracted from this file. Production reads PDF and drawing files with OCR.</p>';
+  openOv(no, doc.title,
+    '<div class="btns"><button class="btn" type="button" data-act="dlDoc" data-no="' + esc(no) + '" data-rev="' + esc(rev) + '">Download</button>' +
+    (doc.current ? '<button class="btn-g" type="button" data-act="uploadRev" data-no="' + esc(no) + '">Upload new revision</button><button class="btn-g" type="button" data-act="transDoc" data-no="' + esc(no) + '" data-rev="' + esc(rev) + '">Add to transmittal</button>' : '') +
+    '<span class="fine" style="align-self: center">' + esc(doc.fmt + ' file, ' + doc.size) + '</span></div>' +
+    banner + tb +
+    (prev ? changesHtml(prev, doc) : '') +
+    '<div><h4>Extracted text</h4>' + pages + '</div>' +
+    '<div><h4>Revision history</h4><ul class="tl">' + versions.map(v => '<li class="' + (v.current ? 'cur' : '') + '"><span class="rv' + (v.current ? '' : ' old') + '">' + esc(v.rev) + '</span><button type="button" class="cite" data-act="doc" data-no="' + esc(v.no) + '" data-rev="' + esc(v.rev) + '">Open Rev ' + esc(v.rev) + '</button>' + pill(v.status) + '<span class="num">' + fmtDate(v.date) + '</span><span class="' + (v.current ? '' : 'muted') + '">' + (v.current ? 'current' : 'superseded') + '</span></li>').join('') + '</ul></div>' +
+    (trail.length ? '<div><h4>Audit trail</h4><ul class="hist">' + trail.map(e => '<li><span class="mono">' + esc(e.t) + '</span><span>' + esc(e.action) + ' by ' + esc(e.user) + '</span></li>').join('') + '</ul></div>' : ''));
+}
+
+function sheetMail(ref) {
+  const m = P().mail.find(x => x.ref === ref); if (!m) return;
+  openOv(m.ref, m.subject,
+    '<div class="btns"><button class="btn" type="button" data-act="newMail" data-ref="' + esc(ref) + '">Reply</button></div>' +
+    meta([['Type', esc(m.type)], ['From', esc(m.from)], ['To', esc(m.to)], ['Date', fmtDate(m.date)], ['Reply due', fmtDate(m.due)], ['Status', pill(mailStatus(m))]]) +
+    '<div><h4>Message</h4><p class="body-text">' + esc(m.body) + '</p></div>' +
+    '<div><h4>Attachments</h4>' + (m.attach.length ? m.attach.map(docChip).join('') : '<p class="fine">None</p>') + '</div>');
+}
+function sheetRfi(no) {
+  const r = P().rfis.find(x => x.no === no); if (!r) return;
+  openOv(r.no, r.title,
+    meta([['Discipline', esc(DISC[r.disc] || r.disc)], ['Raised by', esc(r.from)], ['To', esc(r.to)], ['Raised', fmtDate(r.date)], ['Due', fmtDate(r.due)], ['Status', pill(rfiStatus(r))]]) +
+    '<div><h4>Question</h4><p class="body-text">' + esc(r.question) + '</p></div>' +
+    (r.answer ? '<div><h4>Answer · ' + fmtDate(r.answeredDate) + '</h4><p class="body-text">' + esc(r.answer) + '</p></div>' :
+      '<form class="form" data-form="rfiAnswer" data-no="' + esc(no) + '"><div class="f"><label for="rfAns">Record the answer</label><textarea id="rfAns" required></textarea></div><div class="btns"><button class="btn" type="submit">Save answer</button></div></form>'));
+}
+function sheetTrans(no) {
+  const t = P().trans.find(x => x.no === no); if (!t) return;
+  openOv(t.no, t.subject,
+    '<div class="btns"><button class="btn" type="button" data-act="dlTrans" data-no="' + esc(no) + '">Download transmittal sheet</button></div>' +
+    meta([['From', esc(t.from)], ['To', esc(t.to)], ['Purpose', esc(t.purpose)], ['Issued', fmtDate(t.date)], ['Reply due', fmtDate(t.due)], ['Status', pill(transStatus(t))]]) +
+    '<div><h4>Message</h4><p class="body-text">' + esc(t.message) + '</p></div>' +
+    '<div><h4>Documents</h4>' + t.docs.map(docChip).join('') + '</div>' +
+    (t.response ? '<div><h4>Response · ' + fmtDate(t.response.date) + ' · ' + esc(t.response.by) + '</h4><p class="body-text">' + esc(t.response.comment) + '</p></div>' :
+      t.status === 'Awaiting response' ? '<form class="form" data-form="respond" data-no="' + esc(no) + '"><div><h4>Record a response</h4></div><div class="fr"><div class="f"><label for="rcCode">Review code</label><select id="rcCode"><option value="A">A · Approved</option><option value="B">B · Approved as noted</option><option value="C">C · Revise and resubmit</option><option value="D">D · Rejected</option></select></div><div class="f"><label for="rcNote">Comment</label><input type="text" id="rcNote" placeholder="Optional"></div></div><div class="btns"><button class="btn" type="submit">Record response</button></div></form>' : ''));
+}
+
+/* ---------- forms ---------- */
+const orgOpts = (sel) => ['Employer', 'Consultant', 'Main Contractor', 'MEP Subcontractor'].map(o => '<option' + (o === sel ? ' selected' : '') + '>' + o + '</option>').join('');
+const discOpts = (sel) => Object.keys(DISC).filter(k => canSee(S.role, k)).map(k => '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + esc(DISC[k]) + '</option>').join('');
+const docChecks = (name, pre) => '<div class="chklist">' + P().docs.filter(x => x.current && vis(x)).map(x => { const k = x.no + '|' + x.rev; return '<label><input type="checkbox" name="' + name + '" value="' + esc(k) + '"' + (pre && pre.has(k) ? ' checked' : '') + '><span><span class="mono">' + esc(x.no) + '</span> Rev ' + esc(x.rev) + '<br><span class="fine">' + esc(x.title) + '</span></span></label>'; }).join('') + '</div>';
+
+function formUpload(pre) {
+  pre = pre || {};
+  const types = ['Drawing', 'Specification', 'Method Statement', 'Plan', 'Minutes', 'ITP', 'Report', 'Other'];
+  openOv(pre.no || 'New document', pre.no ? 'Upload new revision' : 'Upload document',
+    '<form class="form" data-form="upload" id="upForm" novalidate>' +
+    '<div class="filebox"><input type="file" id="upFile" aria-label="File"><button type="button" class="btn-g btn-s" data-act="sampleFile">Use a sample file</button></div>' +
+    '<p class="fine" id="upNote">Text is read from .txt, .md, .csv, .json and .docx files so Ask can answer from them. Other formats are stored without text. Add a description to make them searchable.</p>' +
+    '<div class="fr"><div class="f"><label for="upNo">Document number</label><input type="text" id="upNo" placeholder="' + esc(P().code) + '-STR-DWG-0102" value="' + esc(pre.no || '') + '"></div>' +
+    '<div class="f"><label for="upRev">Revision</label><input type="text" id="upRev" value="' + esc(pre.rev || '') + '"></div></div>' +
+    '<div class="f"><label for="upTitle">Title</label><input type="text" id="upTitle" value="' + esc(pre.title || '') + '"></div>' +
+    '<div class="fr"><div class="f"><label for="upDisc">Discipline</label><select id="upDisc">' + discOpts(pre.disc) + '</select></div>' +
+    '<div class="f"><label for="upType">Type</label><select id="upType">' + types.map(t => '<option' + (t === pre.type ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>' +
+    '<div class="f"><label for="upStatus">Status</label><select id="upStatus"><option value="IFC">IFC · Issued for construction</option><option value="IFA">IFA · Issued for approval</option><option value="ISSUED">ISSUED · For information</option></select></div></div>' +
+    '<div class="f"><label for="upDesc">Description (optional, searchable)</label><textarea id="upDesc"></textarea></div>' +
+    '<p class="fine">If this document number already has a current revision, that revision becomes SUPERSEDED when you upload.</p>' +
+    '<p class="err" id="upErr" hidden></p>' +
+    '<div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Upload</button></div></form>');
+}
+async function onFileChosen(file) {
+  if (!file) return;
+  S.up = { file, text: '' };
+  const note = $('upNote');
+  try { S.up.text = await extractText(file); } catch (e) { S.up.text = ''; }
+  const chunks = toChunks(S.up.text);
+  if (note) note.textContent = chunks.length ? 'Read ' + chunks.length + ' passage' + (chunks.length === 1 ? '' : 's') + ' from ' + file.name + '. Ask will be able to answer from it.' : 'No text could be read from ' + file.name + '. It will be stored as a file. Add a description to make it searchable.';
+  const m = /([A-Z]{3}-[A-Z]{3}-[A-Z]{3}-\d{4})/.exec(file.name.toUpperCase());
+  if (m && $('upNo') && !$('upNo').value) { $('upNo').value = m[1]; autofillFromNo(); }
+  if ($('upTitle') && !$('upTitle').value) $('upTitle').value = file.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ');
+}
+function autofillFromNo() {
+  const no = ($('upNo').value || '').trim().toUpperCase();
+  const cur = P().docs.find(x => x.no === no && x.current);
+  if (cur) {
+    if (!$('upTitle').value || S.upAuto) { $('upTitle').value = cur.title; S.upAuto = true; }
+    if (canSee(S.role, cur.disc)) $('upDisc').value = cur.disc;
+    $('upType').value = cur.type;
+    if (!$('upRev').value) $('upRev').value = nextRev(cur.rev);
+  }
+}
+const SAMPLE_TEXT = code => 'METHOD STATEMENT: Hydrostatic Testing of Level 3 Chilled Water Pipework\n\nScope: This method statement covers hydrostatic testing of the Level 3 chilled water supply and return pipework.\n\nTest pressure: The test pressure is 15 bar, held for 2 hours. A pressure drop above 0.3 bar means the test has failed.\n\nFilling and venting: Fill the system slowly from the lowest point and vent all high points before pressurising.\n\nSafety: The test section shall be barriered with an exclusion zone of 5 m. Only authorised personnel may enter the zone during pressurisation.\n\nRecords: Test results shall be recorded on form MEP-F-12 and signed by the Engineer representative.';
+async function useSample() {
+  const code = P().code;
+  const file = new File([SAMPLE_TEXT(code)], code + '-MEP-MST-0015_Hydrotest_Method_Statement.txt', { type: 'text/plain' });
+  S.upSample = true;
+  await onFileChosen(file);
+  if ($('upType')) $('upType').value = 'Method Statement';
+  if ($('upDisc')) $('upDisc').value = canSee(S.role, 'MEP') ? 'MEP' : $('upDisc').value;
+  if ($('upRev') && !$('upRev').value) $('upRev').value = 'A';
+  if ($('upTitle')) $('upTitle').value = 'Hydrostatic Testing of Level 3 Chilled Water Pipework';
+}
+function submitUpload() {
+  const p = P(), no = ($('upNo').value || '').trim().toUpperCase(), rev = ($('upRev').value || '').trim().toUpperCase(), title = ($('upTitle').value || '').trim();
+  const err = $('upErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const file = S.up && S.up.file, desc = ($('upDesc').value || '').trim();
+  if (!no) return fail('Enter a document number.');
+  if (!rev) return fail('Enter a revision.');
+  if (!title) return fail('Enter a title.');
+  if (!file && !desc) return fail('Choose a file, or add a description.');
+  if (p.docs.some(x => x.no === no && x.rev === rev)) return fail(no + ' Rev ' + rev + ' already exists. Use the next revision.');
+  const disc = $('upDisc').value;
+  if (!canSee(S.role, disc)) return fail('Your role cannot upload to this discipline.');
+  const prev = p.docs.find(x => x.no === no && x.current);
+  if (prev) { prev.current = false; prev.status = 'SUP'; S.sel.delete(prev.no + '|' + prev.rev); audit('Superseded', no + ' Rev ' + prev.rev, prev.disc); }
+  const chunks = toChunks((S.up ? S.up.text : '') + (desc ? '\n' + desc : ''));
+  const ext = file ? (file.name.split('.').pop() || 'file').toUpperCase().slice(0, 5) : 'NOTE';
+  const doc = { no, title, disc, type: $('upType').value, rev, status: $('upStatus').value, date: TODAY, chunks, current: true, fmt: ext, size: file ? fmtSize(file.size) : '0 B', by: user().org, uploaded: true, file: file || null };
+  p.docs.push(doc);
+  audit('Uploaded', no + ' Rev ' + rev, disc);
+  const hint = S.upSample ? ' Try asking: What pressure drop fails the hydrostatic test?' : '';
+  S.upSample = false; S.upAuto = false;
+  S.flash = no + '|' + rev; S.tab = 'docs'; S.f = { q: '', disc: '', status: '', cur: true };
+  closeOv(); renderApp();
+  toast('Uploaded ' + no + ' Rev ' + rev + (prev ? '. Rev ' + prev.rev + ' is now superseded.' : '.') + hint);
+}
+
+function formTrans(pre) {
+  openOv('New transmittal', 'Issue documents',
+    '<form class="form" data-form="trans" novalidate><div class="f"><label for="trSubj">Subject</label><input type="text" id="trSubj"></div>' +
+    '<div class="fr"><div class="f"><label for="trTo">To</label><select id="trTo">' + orgOpts('Consultant') + '</select></div>' +
+    '<div class="f"><label for="trPurpose">Purpose</label><select id="trPurpose"><option>For Approval</option><option>For Information</option><option>For Construction</option></select></div>' +
+    '<div class="f"><label for="trDue">Reply due</label><input type="date" id="trDue"></div></div>' +
+    '<div class="f"><span class="lbl">Documents</span>' + docChecks('tdoc', pre) + '</div>' +
+    '<div class="f"><label for="trMsg">Message</label><textarea id="trMsg"></textarea></div>' +
+    '<p class="err" id="trErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Issue transmittal</button></div></form>');
+}
+function submitTrans(form) {
+  const p = P(), err = $('trErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const subj = $('trSubj').value.trim(), purpose = $('trPurpose').value, due = $('trDue').value;
+  const picked = Array.from(form.querySelectorAll('input[name="tdoc"]:checked')).map(x => x.value.split('|'));
+  if (!subj) return fail('Enter a subject.');
+  if (!picked.length) return fail('Select at least one document.');
+  if (purpose === 'For Approval' && !due) return fail('Set a reply due date for documents issued for approval.');
+  const discs = Array.from(new Set(picked.map(([n, r]) => p.docs.find(x => x.no === n && x.rev === r).disc)));
+  const disc = discs.length === 1 ? discs[0] : (S.role === 'sub' ? discs[0] : 'GEN');
+  const no = nextRef(p.trans, 'no', p.code + '-TRN');
+  p.trans.push({ no, subject: subj, from: user().org, to: $('trTo').value, date: TODAY, purpose, due: due || null, disc, docs: picked, message: $('trMsg').value.trim() || subj + '.', status: purpose === 'For Approval' ? 'Awaiting response' : 'Issued', response: null });
+  audit('Issued transmittal', no, disc);
+  S.sel.clear(); closeOv(); S.tab = 'trans'; renderApp(); toast('Issued ' + no);
+}
+function formMail(replyRef) {
+  const orig = replyRef ? P().mail.find(x => x.ref === replyRef) : null;
+  openOv(orig ? 'Reply to ' + orig.ref : 'New mail', orig ? 'Re: ' + orig.subject : 'Send correspondence',
+    '<form class="form" data-form="mail" data-reply="' + esc(replyRef || '') + '" novalidate><div class="fr"><div class="f"><label for="mlType">Type</label><select id="mlType"><option>Letter</option><option>Notice</option><option>Instruction</option></select></div>' +
+    '<div class="f"><label for="mlTo">To</label><select id="mlTo">' + orgOpts(orig ? orig.from : 'Consultant') + '</select></div>' +
+    '<div class="f"><label for="mlDisc">Discipline</label><select id="mlDisc">' + discOpts(orig ? orig.disc : (S.role === 'sub' ? 'MEP' : 'GEN')) + '</select></div></div>' +
+    '<div class="f"><label for="mlSubj">Subject</label><input type="text" id="mlSubj" value="' + esc(orig ? 'Re: ' + orig.subject : '') + '"></div>' +
+    '<div class="f"><label for="mlBody">Message</label><textarea id="mlBody"></textarea></div>' +
+    '<div class="f"><label for="mlDue">Reply required by (optional)</label><input type="date" id="mlDue"></div>' +
+    '<div class="f"><span class="lbl">Attach from register</span>' + docChecks('mdoc') + '</div>' +
+    '<p class="err" id="mlErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Send</button></div></form>');
+}
+function submitMail(form) {
+  const p = P(), err = $('mlErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const subj = $('mlSubj').value.trim(), body = $('mlBody').value.trim(), due = $('mlDue').value;
+  if (!subj) return fail('Enter a subject.');
+  if (!body) return fail('Write a message.');
+  const attach = Array.from(form.querySelectorAll('input[name="mdoc"]:checked')).map(x => x.value.split('|'));
+  const ref = nextRef(p.mail, 'ref', p.code + '-COR');
+  const disc = $('mlDisc').value;
+  p.mail.push({ ref, type: $('mlType').value, subject: subj, from: user().org, to: $('mlTo').value, date: TODAY, due: due || null, status: due ? 'Open' : 'Sent', disc, body, attach });
+  const rr = form.dataset.reply && p.mail.find(x => x.ref === form.dataset.reply);
+  if (rr && rr.status === 'Open') rr.status = 'Replied';
+  audit('Sent mail', ref, disc);
+  closeOv(); S.tab = 'mail'; renderApp(); toast('Sent ' + ref);
+}
+function formRfi() {
+  openOv('New RFI', 'Raise an RFI',
+    '<form class="form" data-form="rfi" novalidate><div class="f"><label for="rfSubj">Subject</label><input type="text" id="rfSubj"></div>' +
+    '<div class="fr"><div class="f"><label for="rfDisc">Discipline</label><select id="rfDisc">' + discOpts(S.role === 'sub' ? 'MEP' : 'STR') + '</select></div>' +
+    '<div class="f"><label for="rfTo">To</label><select id="rfTo">' + orgOpts('Consultant') + '</select></div>' +
+    '<div class="f"><label for="rfDue">Answer due</label><input type="date" id="rfDue"></div></div>' +
+    '<div class="f"><label for="rfQ">Question</label><textarea id="rfQ"></textarea></div>' +
+    '<p class="err" id="rfErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Raise RFI</button></div></form>');
+}
+function submitRfi() {
+  const p = P(), err = $('rfErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const subj = $('rfSubj').value.trim(), q = $('rfQ').value.trim(), due = $('rfDue').value;
+  if (!subj) return fail('Enter a subject.');
+  if (!q) return fail('Write the question.');
+  if (!due) return fail('Set an answer due date.');
+  const no = nextRef(p.rfis, 'no', p.code + '-RFI');
+  p.rfis.push({ no, title: subj, disc: $('rfDisc').value, from: user().org, to: $('rfTo').value, date: TODAY, due, status: 'Open', question: q, answer: null, answeredDate: null });
+  audit('Raised RFI', no, $('rfDisc').value);
+  closeOv(); S.tab = 'rfis'; renderApp(); toast('Raised ' + no);
+}
+
+/* ---------- actions ---------- */
+function openItem(kind, key, pg) {
+  if (kind === 'doc') { const [no, rev] = key.split('|'); sheetDoc(no, rev, pg); }
+  else if (kind === 'mail') sheetMail(key);
+  else if (kind === 'rfi') sheetRfi(key);
+  else if (kind === 'trans') sheetTrans(key);
+}
+async function downloadDoc(no, rev) {
+  const doc = P().docs.find(x => x.no === no && x.rev === rev); if (!doc) return;
+  let ok;
+  if (doc.file) ok = await saveFile(doc.file.name, doc.file);
+  else ok = await saveFile(no + '_Rev' + rev + '_demo.txt', demoCopy(doc));
+  if (ok) { audit('Downloaded', no + ' Rev ' + rev, doc.disc); if (S.tab === 'audit') renderMain(); }
+}
+function transSheetHtml(t) {
+  const rows = t.docs.map(([n, r]) => { const x = P().docs.find(y => y.no === n && y.rev === r); return '<tr><td>' + esc(n) + '</td><td>' + esc(r) + '</td><td>' + esc(x ? x.title : '') + '</td></tr>'; }).join('');
+  return '<!doctype html><html><head><meta charset="utf-8"><title>' + esc(t.no) + '</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:6px 8px;text-align:left}h1{font-size:20px}</style></head><body><h1>Transmittal ' + esc(t.no) + '</h1><p>Sample data. Demo document.</p><table><tr><th>From</th><td>' + esc(t.from) + '</td><th>To</th><td>' + esc(t.to) + '</td></tr><tr><th>Date</th><td>' + esc(t.date) + '</td><th>Purpose</th><td>' + esc(t.purpose) + '</td></tr><tr><th>Subject</th><td colspan="3">' + esc(t.subject) + '</td></tr><tr><th>Reply due</th><td colspan="3">' + esc(t.due || '') + '</td></tr></table><p>' + esc(t.message) + '</p><table><tr><th>Document</th><th>Rev</th><th>Title</th></tr>' + rows + '</table></body></html>';
+}
+const ACT = {
+  site() { setView('site'); },
+  scroll(a) { const el = $(a.target); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
+  openDemo(a) { S.tab = a.tab || 'dash'; setView('app'); },
+  go(a) { go(a.tab); },
+  doc(a) { sheetDoc(a.no, a.rev, 0); },
+  mail(a) { sheetMail(a.ref); },
+  rfi(a) { sheetRfi(a.no); },
+  trans(a) { sheetTrans(a.no); },
+  openItem(a) { openItem(a.kind, a.key, 0); },
+  cite(a) { openItem(a.kind, a.key, +a.p); },
+  close() { closeOv(); },
+  sel(a, el) { if (el.checked) S.sel.add(a.key); else S.sel.delete(a.key); syncSel(); },
+  upload() { S.up = null; S.upAuto = false; formUpload(); },
+  uploadRev(a) { const x = P().docs.find(y => y.no === a.no && y.current); S.up = null; S.upAuto = false; formUpload({ no: x.no, rev: nextRev(x.rev), title: x.title, disc: x.disc, type: x.type }); },
+  sampleFile() { useSample(); },
+  dlDoc(a) { downloadDoc(a.no, a.rev); },
+  dlTrans(a) { const t = P().trans.find(x => x.no === a.no); if (t) saveFile(t.no + '.html', transSheetHtml(t)).then(ok => { if (ok) audit('Downloaded', t.no, t.disc); }); },
+  exportRegister() {
+    const rows = [['doc_no', 'title', 'discipline', 'type', 'revision', 'status', 'issued', 'current']].concat(P().docs.filter(vis).map(x => [x.no, x.title, x.disc, x.type, x.rev, x.status, x.date, x.current ? 'yes' : 'no']));
+    saveFile(P().code + '_register.csv', toCsv(rows)).then(ok => { if (ok) { audit('Exported register', P().code, null); } });
+  },
+  exportAudit() { saveFile(P().code + '_audit.csv', toCsv([['time', 'user', 'action', 'object']].concat(P().audit.map(e => [e.t, e.user, e.action, e.obj])))); },
+  newTrans() { formTrans(null); },
+  newTransSel() { formTrans(new Set(S.sel)); },
+  transDoc(a) { formTrans(new Set([a.no + '|' + a.rev])); },
+  newMail(a) { formMail(a && a.ref); },
+  newRfi() { formRfi(); },
+  mailF(a) { S.mailF = a.v; renderMain(); },
+  rfiF(a) { S.rfiF = a.v; renderMain(); },
+  chip(a) { ask(P().chips[+a.i].q); }
+};
+const FORMS = {
+  upload: () => submitUpload(),
+  trans: f => submitTrans(f),
+  mail: f => submitMail(f),
+  rfi: () => submitRfi(),
+  rfiAnswer(f) {
+    const r = P().rfis.find(x => x.no === f.dataset.no), a = $('rfAns').value.trim(); if (!a) return;
+    r.answer = a; r.status = 'Answered'; r.answeredDate = TODAY; audit('Answered RFI', r.no, r.disc);
+    closeOv(); renderApp(); toast('Answer saved for ' + r.no);
+  },
+  respond(f) {
+    const t = P().trans.find(x => x.no === f.dataset.no), code = $('rcCode').value, note = $('rcNote').value.trim();
+    const label = { A: 'approved', B: 'approved as noted', C: 'revise and resubmit', D: 'rejected' }[code];
+    t.status = 'Responded'; t.response = { code, comment: 'Review code ' + code + ': ' + label + '.' + (note ? ' ' + note : ''), by: user().org, date: TODAY };
+    audit('Responded to transmittal', t.no + ' (code ' + code + ')', t.disc);
+    closeOv(); renderApp(); toast('Recorded code ' + code + ' on ' + t.no);
+  }
+};
+
+
+/* ---------- product site ---------- */
+function cloudPath(x, y, w, h, bump) {
+  const nx = Math.max(2, Math.round(w / bump)), ny = Math.max(2, Math.round(h / bump));
+  const sx = w / nx, sy = h / ny;
+  let d = 'M' + x + ' ' + y, i;
+  for (i = 0; i < nx; i++) d += 'a' + sx / 2 + ' ' + sx / 2 + ' 0 0 1 ' + sx + ' 0';
+  for (i = 0; i < ny; i++) d += 'a' + sy / 2 + ' ' + sy / 2 + ' 0 0 1 0 ' + sy;
+  for (i = 0; i < nx; i++) d += 'a' + sx / 2 + ' ' + sx / 2 + ' 0 0 1 ' + (-sx) + ' 0';
+  for (i = 0; i < ny; i++) d += 'a' + sy / 2 + ' ' + sy / 2 + ' 0 0 1 0 ' + (-sy);
+  return d + 'z';
+}
+const HERO_QS = ['What is the slab thickness at Level 3?', 'How many days of delay did the contractor claim for the crane?', 'What review code did the fire alarm shop drawings get?'];
+function heroAsk(i) {
+  const q = HERO_QS[i], p = D.awt;
+  const r = search(buildChunks(p), 'dc', q, c => c.kind === 'doc' && p.docs.some(x => x.no === c.ref && x.current));
+  let h = r.parts.map(x => '<p>' + esc(x.sentence) + ' ' + citeBtn(x.c, 'heroCite') + '</p>').join('');
+  r.notes.forEach(n => { h += '<div class="note"><b>Not used:</b> ' + esc(n.c.ref) + ' Rev ' + esc(n.c.rev) + ' is superseded. It said: ' + esc(n.sentence) + '</div>'; });
+  $('heroAns').innerHTML = h || '<p class="muted">No answer found in the current revisions.</p>';
+  $('heroChips').innerHTML = HERO_QS.map((t, k) => '<button type="button" class="chip" data-act="heroQ" data-i="' + k + '" aria-pressed="' + (k === i) + '">' + esc(t) + '</button>').join('');
+}
+function renderFunnel() {
+  const role = S.funnelRole || 'dc';
+  const all = Object.keys(D).reduce((a, k) => a + buildChunks(D[k]).length, 0);
+  const a = buildChunks(D.awt), r = a.filter(c => canSee(role, c.disc)), cur = r.filter(c => c.current);
+  const rows = [
+    ['Every project on the platform', all, 'Each project is stored separately, and no question is ever run across projects.'],
+    ['Al-Wahah Tower only', a.length, 'Passages from the other project are removed before anything is ranked.'],
+    ['Passages this role can open', r.length, role === 'sub' ? 'The MEP Subcontractor cannot open structural, architectural, civil or general items.' : 'The Document Controller can open every discipline.'],
+    ['Current revisions only', cur.length, 'Superseded revisions stay in the record but can never become the answer.']
+  ];
+  const body = $('funnelBody');
+  if (!body.children.length) {
+    body.innerHTML = rows.map(x => '<div class="fn-row"><div><h4>' + esc(x[0]) + '</h4><p></p></div><div class="fn-bar"><i style="width: 0"></i></div><div class="fn-n"></div></div>').join('');
+  }
+  Array.from(body.children).forEach((row, i) => {
+    row.querySelector('h4').textContent = rows[i][0];
+    row.querySelector('p').textContent = rows[i][2];
+    row.querySelector('.fn-n').textContent = rows[i][1];
+    const w = Math.max(1, Math.round(rows[i][1] / all * 100)) + '%';
+    void row.offsetWidth;
+    row.querySelector('i').style.width = w;
+  });
+  document.querySelectorAll('[data-act="funnelRole"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === role)));
+}
+function renderDiffShow() {
+  const p = D.awt, a = p.docs.find(x => x.no === 'AWT-STR-DWG-0101' && x.rev === 'B'), b = p.docs.find(x => x.no === 'AWT-STR-DWG-0101' && x.rev === 'C');
+  const pg = diffPages(a, b).filter(x => x.kind !== 'same');
+  $('diffShow').innerHTML = '<div class="dcard-h"><span class="mono">AWT-STR-DWG-0101</span><span class="rv old">B</span><span class="muted">to</span><span class="rv">C</span><span class="fine" style="margin-left: auto">Level 3 Podium Slab, Reinforcement Layout</span></div>' +
+    '<div class="dcard-b">' + pg.map(x => '<div><p class="fine" style="margin: 14px 0 6px">Page ' + x.p + (x.kind === 'new' ? ', new in Rev C' : '') + '</p><div class="diff">' + x.html + '</div></div>').join('') + '</div>';
+}
+const MODS = [
+  ['dash', 'Dashboard', 'What needs action today, the shape of the register and recent activity.', ['Overdue replies and open reviews', 'Items filed per week, by type']],
+  ['docs', 'Documents', 'A controlled register with revisions, status codes and automatic superseding.', ['Upload by button or drag and drop', 'Download files and export the register', 'Word-by-word comparison between revisions']],
+  ['mail', 'Mail', 'Formal correspondence with reference numbers, reply dates and attachments from the register.', ['Letters, notices and instructions', 'Replies keep the thread together']],
+  ['trans', 'Transmittals', 'Issue a set of documents to named recipients with a purpose and a due date.', ['Review codes A to D on reply', 'Download a printable transmittal sheet']],
+  ['rfis', 'RFIs', 'Structured requests with an owner, a due date and a recorded answer.', ['Overdue items flagged on the dashboard', 'Answers searchable in Ask']],
+  ['ask', 'Ask', 'Ask the project a question. Answers use current revisions only and cite their source.', ['Searches documents, mail, RFIs and transmittals', 'Respects your role and project']],
+  ['audit', 'Audit trail', 'Every view, upload, download, issue and reply, with who and when.', ['Filter by action', 'Export to CSV']],
+  ['forms', 'Forms', 'NCRs, site instructions and inspection requests, each with an owner and a due date.', ['Reply and close out', 'Overdue forms appear in alerts']],
+  ['work', 'Workflows', 'Send a document through check, review and approval, step by step.', ['Approve, approve with comments, or reject', 'See who must decide next']],
+  ['tenders', 'Tenders', 'Collect bids for a package and compare price and time side by side.', ['Lowest and fastest bid marked', 'Award to one bidder']],
+  ['reports', 'Reports', 'Ready-made reports on the register, replies owed and review times.', ['Download any report as CSV', 'See who owes a reply']],
+  ['dir', 'Directory', 'Everyone on the project, grouped by organisation, with what each can open.', ['Invite someone', 'Roles and access']]
+];
+function initSite() {
+  try {
+    const path = $('heroCloud'); path.setAttribute('d', cloudPath(240, 196, 120, 62, 15));
+    const L = path.getTotalLength ? path.getTotalLength() : 0;
+    if (L) { path.style.setProperty('--len', L.toFixed(0)); path.classList.add('draw'); }
+  } catch (e) { /* drawing animation is optional */ }
+  heroAsk(0); renderFunnel(); renderDiffShow();
+  $('modGrid').innerHTML = MODS.map(([k, t, p, ul, btn]) => '<div class="mod"><span class="mod-i">' + ico(k, 20) + '</span><h3>' + t + '<span class="tagp on">In demo</span></h3><p>' + p + '</p><ul>' + ul.map(x => '<li>' + x + '</li>').join('') + '</ul><button class="btn-g btn-s" type="button" data-act="openDemo" data-tab="' + k + '">Open ' + (btn || t) + '</button></div>').join('');
+  [['ti-ask', 'ask'], ['ti-diff', 'docs'], ['ti-upload', 'dash'], ['ti-role', 'rfis'], ['wi-1', 'docs'], ['wi-2', 'trans'], ['wi-3', 'ask']].forEach(([id, k]) => { const e = $(id); if (e) e.innerHTML = ico(k, 20); });
+  initTip();
+}
+Object.assign(ACT, {
+  docStatus(a) { S.f.status = a.v; S.f.cur = a.v !== 'SUP'; renderMain(); },
+  funnelRole(a) { S.funnelRole = a.v; renderFunnel(); },
+  heroQ(a) { heroAsk(+a.i); },
+  heroCite(a) { S.proj = 'awt'; S.role = 'dc'; openItem(a.kind, a.key, +a.p); },
+  openDoc(a) { S.proj = 'awt'; S.role = 'dc'; sheetDoc(a.no, a.rev, 0); }
+});
+
+/* ---------- guided tour ---------- */
+S.tried = {};
+const _ask0 = ask; ask = function (q) { S.tried.ask = true; return _ask0(q); };
+const _sheetDoc0 = sheetDoc; sheetDoc = function (no, rev, pg) { const r = _sheetDoc0(no, rev, pg); if (P().docs.filter(x => x.no === no).length > 1) S.tried.diff = true; return r; };
+const _audit0 = audit; audit = function (a, o, d) { if (a === 'Issued transmittal') S.tried.trans = true; if (a === 'Started review' || a === 'Review decision') S.tried.work = true; if (a === 'Raised form') S.tried.form = true; if (a === 'Uploaded') S.tried.upload = true; return _audit0(a, o, d); };
+const _nav0 = renderNav; renderNav = function () { _nav0(); $('nav').insertAdjacentHTML('beforeend', '<button type="button" class="link backlink" data-act="site">&larr; Back to product page</button>'); };
+const TOUR = [
+  ['ask', 'Ask a question', 'Type a question in plain words. The answer shows where it came from.', 'ask', 'Ask'],
+  ['diff', 'See what changed in a drawing', 'Open a drawing that has two versions and see the changes highlighted.', 'diff', 'Open it'],
+  ['upload', 'Upload your own file', 'Add a file. If it replaces an older one, the old one is marked superseded.', 'upload', 'Upload a sample'],
+  ['trans', 'Send documents to someone', 'Use New transmittal (top right) to formally send documents and set a reply date.', 'trans', 'Start'],
+  ['work', 'Start a review workflow', 'Send a document through check, review and approval, then record a decision.', 'work', 'Start a review'],
+  ['form', 'Raise a site form', 'Create an NCR, site instruction or inspection request with a due date.', 'form', 'Raise a form'],
+  ['find', 'Find anything fast', 'Press Ctrl+K (or use Find at the top) and search every document, letter and RFI.', 'find', 'Open Find'],
+  ['role', 'See what a subcontractor sees', 'Switch the user. Some drawings disappear because they are not for that person.', 'role', 'Switch user']
+];
+function renderTour() {
+  const done = k => k === 'role' ? (S.tried.role || S.role === 'sub') : !!S.tried[k];
+  if (S.role === 'sub') S.tried.role = true;
+  const n = TOUR.filter(t => done(t[0])).length;
+  return '<section class="tour"><div class="tour-h"><b>Try these 8 things</b><span>' + n + ' of 8 done</span></div><ol>' +
+    TOUR.map(t => '<li class="' + (done(t[0]) ? 'done' : '') + '"><span class="tk" aria-hidden="true">&#10003;</span><div><b>' + t[1] + '</b><p>' + t[2] + '</p>' +
+      (done(t[0]) ? '<span class="tagp on">Done</span>' : t[0] === 'trans' ? '<button class="btn-g btn-s" type="button" data-act="newTrans">' + t[4] + '</button>' : '<button class="btn-g btn-s" type="button" data-act="tryIt" data-k="' + t[3] + '">' + t[4] + '</button>') + '</div></li>').join('') + '</ol>' +
+    '<div class="gl"><b>Words used here:</b> a <b>document</b> is any file. A <b>revision</b> is a newer version of it. <b>Superseded</b> means replaced by a newer one. A <b>transmittal</b> is a formal cover note for sending documents. An <b>RFI</b> is a question to the designer.</div></section>';
+}
+const _viewDash0 = viewDash;
+viewDash = function () { const h = _viewDash0(); const i = h.indexOf('<div class="tiles">'); return i < 0 ? h : h.slice(0, i) + renderTour() + h.slice(i); };
+Object.assign(ACT, {
+  tryIt(a) {
+    const k = a.k; S.proj = 'awt'; S.sel.clear();
+    if (k === 'role') { S.role = 'sub'; S.tried.role = true; S.tab = 'dash'; setView('app'); toast('Now viewing as the MEP Subcontractor. Use "Signed in as" at the top to switch back.'); return; }
+    S.role = 'dc';
+    if (k === 'work') { S.tab = 'work'; setView('app'); formWork(); return; }
+    if (k === 'form') { S.tab = 'forms'; setView('app'); formNew(); return; }
+    if (k === 'find') { S.tab = 'dash'; setView('app'); quickFind(); return; }
+    if (k === 'ask') { S.tried.ask = true; S.tab = 'ask'; setView('app'); return; }
+    if (k === 'diff') { S.tab = 'docs'; setView('app'); sheetDoc('AWT-STR-DWG-0101', 'C', 0); return; }
+    if (k === 'upload') { S.tab = 'docs'; setView('app'); ACT.upload(); useSample(); return; }
+  }
+});
+
+
+/* ---------- v6 features: quick find, alerts, comments, zip, ask extras ---------- */
+(function () {
+  const d0 = D.awt.docs.find(x => x.no === 'AWT-STR-DWG-0101' && x.rev === 'C');
+  if (d0) d0.comments = [{ by: 'Layla Nasser, Main Contractor', t: '2026-10-09 10:15', text: 'Rev C supersedes Rev B. Slab thickness is now 300 mm, as agreed under RFI-0142.' }];
+})();
+const KIND_LABEL = { doc: 'Document', mail: 'Mail', rfi: 'RFI', trans: 'Transmittal' };
+function findAll(q) {
+  const p = P(), s = q.trim().toLowerCase(), out = [];
+  if (!s) return out;
+  const has = (...f) => f.join(' ').toLowerCase().includes(s);
+  p.docs.filter(vis).forEach(x => { if (has(x.no, x.title, x.type)) out.push({ kind: 'doc', key: x.no + '|' + x.rev, ref: x.no, title: x.title, tag: 'Rev ' + x.rev + (x.current ? '' : ' superseded') }); });
+  p.mail.filter(vis).forEach(x => { if (has(x.ref, x.subject, x.from, x.to)) out.push({ kind: 'mail', key: x.ref, ref: x.ref, title: x.subject, tag: x.type }); });
+  p.rfis.filter(vis).forEach(x => { if (has(x.no, x.title)) out.push({ kind: 'rfi', key: x.no, ref: x.no, title: x.title, tag: x.status }); });
+  p.trans.filter(vis).forEach(x => { if (has(x.no, x.subject, x.to)) out.push({ kind: 'trans', key: x.no, ref: x.no, title: x.subject, tag: x.status }); });
+  return out;
+}
+function findHtml(q) {
+  const r = findAll(q);
+  if (!q.trim()) return '<p class="fine">Type a document number, a title, a person or a subject. Searches documents, mail, RFIs and transmittals in this project.</p>';
+  if (!r.length) return '<p class="fine">Nothing found for "' + esc(q) + '". To ask a question in plain words, use Ask.</p>';
+  return '<ul class="qf">' + r.slice(0, 12).map(x => '<li><button type="button" data-act="openItem" data-kind="' + x.kind + '" data-key="' + esc(x.key) + '"><span class="tagp">' + KIND_LABEL[x.kind] + '</span><span class="mono">' + esc(x.ref) + '</span><span class="grow">' + esc(x.title) + '</span><span class="fine">' + esc(x.tag) + '</span></button></li>').join('') + '</ul>' + (r.length > 12 ? '<p class="fine">Showing 12 of ' + r.length + '. Type more to narrow.</p>' : '');
+}
+function quickFind() {
+  if (S.view !== 'app') return;
+  S.tried.find = true;
+  openOv(P().code, 'Find anything', '<input type="text" id="qf" placeholder="Search documents, mail, RFIs, transmittals" aria-label="Search everything" autocomplete="off"><div id="qfList">' + findHtml('') + '</div>');
+  $('qf').focus();
+}
+document.addEventListener('input', e => { if (e.target.id === 'qf') $('qfList').innerHTML = findHtml(e.target.value); });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && S.view === 'app') { e.preventDefault(); quickFind(); return; }
+  if (e.key === 'Enter' && e.target.id === 'qf') { const b = document.querySelector('#qfList .qf button'); if (b) b.click(); }
+});
+function alertItems() {
+  const t = dayN(TODAY), items = openItems();
+  const over = items.filter(x => x.due && x.due < TODAY), soon = items.filter(x => x.due && x.due >= TODAY && dayN(x.due) - t <= 7);
+  return { over, soon };
+}
+function alertsHtml() {
+  const { over, soon } = alertItems();
+  const row = (x, late) => '<li><button type="button" data-act="openItem" data-kind="' + x.kind + '" data-key="' + esc(x.key) + '"><span class="tagp">' + x.label + '</span><span class="mono">' + esc(x.key) + '</span><span class="grow">' + esc(x.title) + '</span>' + (late ? '<span class="pill bad">' + plural(dayN(TODAY) - dayN(x.due), 'day') + ' late</span>' : '<span class="fine">due ' + fmtDate(x.due) + '</span>') + '</button></li>';
+  if (!over.length && !soon.length) return '<p class="fine">Nothing is overdue or due in the next 7 days.</p>';
+  return (over.length ? '<h4>Overdue (' + over.length + ')</h4><ul class="qf">' + over.map(x => row(x, true)).join('') + '</ul>' : '') +
+    (soon.length ? '<h4>Due in the next 7 days (' + soon.length + ')</h4><ul class="qf">' + soon.map(x => row(x, false)).join('') + '</ul>' : '');
+}
+function updateBell() { const n = $('bellN'); if (!n) return; const { over } = alertItems(); n.textContent = over.length || ''; n.hidden = !over.length; }
+const _renderBar0 = renderBar; renderBar = function () { _renderBar0(); updateBell(); };
+const _renderMain0 = renderMain; renderMain = function () { _renderMain0(); updateBell(); };
+
+function commentsHtml(doc) {
+  const cs = doc.comments || [];
+  return '<div id="cmBox"><h4>Comments (' + cs.length + ')</h4>' +
+    (cs.length ? '<ul class="cm">' + cs.map(c => '<li><b>' + esc(c.by) + '</b> <span class="fine mono">' + esc(c.t) + '</span><p>' + esc(c.text) + '</p></li>').join('') + '</ul>' : '<p class="fine">No comments yet. Use comments for review notes that should stay with this document.</p>') +
+    '<form data-form="comment" data-no="' + esc(doc.no) + '" data-rev="' + esc(doc.rev) + '" class="cmform"><textarea id="cmText" rows="2" placeholder="Add a comment" aria-label="Comment"></textarea><button class="btn btn-s" type="submit">Add comment</button></form></div>';
+}
+const _sheetDoc1 = sheetDoc;
+sheetDoc = function (no, rev, pg) {
+  _sheetDoc1(no, rev, pg);
+  const doc = P().docs.find(x => x.no === no && x.rev === rev);
+  if (doc && $('ovB')) $('ovB').insertAdjacentHTML('beforeend', commentsHtml(doc));
+};
+FORMS.comment = function (f) {
+  const doc = P().docs.find(x => x.no === f.dataset.no && x.rev === f.dataset.rev), txt = ($('cmText').value || '').trim();
+  if (!doc || !txt) return;
+  (doc.comments = doc.comments || []).push({ by: user().name + ', ' + user().org, t: TODAY + ' ' + hhmm(), text: txt });
+  audit('Commented', doc.no + ' Rev ' + doc.rev, doc.disc);
+  sheetDoc(doc.no, doc.rev, 0);
+  const b = $('ovB'); if (b) { const sc = b.closest('.sheet-b') || b; sc.scrollTop = sc.scrollHeight; }
+  toast('Comment added');
+};
+
+const _viewDocs0 = viewDocs;
+viewDocs = function () { return _viewDocs0().replace('<button class="btn-g" type="button" id="selBtn"', '<button class="btn-g" type="button" id="zipBtn" data-act="zipSel" disabled>Download selected</button><button class="btn-g" type="button" id="selBtn"'); };
+const _syncSel0 = syncSel;
+syncSel = function () { _syncSel0(); const b = $('zipBtn'); if (b) { b.disabled = S.sel.size === 0; b.textContent = S.sel.size ? 'Download selected (' + S.sel.size + ')' : 'Download selected'; } };
+async function zipSel() {
+  const p = P(), picks = Array.from(S.sel).map(k => { const [no, rev] = k.split('|'); return p.docs.find(x => x.no === no && x.rev === rev); }).filter(Boolean);
+  if (!picks.length) return;
+  let dl = null; try { dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
+  if (!dl) dl = { save: async r => { if (!(await saveFile(r.filename, r.data))) throw new Error('x'); } };
+  const fname = x => x.no + '_Rev' + x.rev + (x.file ? '_' + x.file.name : '_demo.txt');
+  try {
+    const z = new JSZip();
+    picks.forEach(x => z.file(fname(x), x.file || demoCopy(x)));
+    const blob = await z.generateAsync({ type: 'blob' });
+    await dl.save({ filename: p.code + '_documents.zip', data: blob });
+    audit('Downloaded', picks.length + ' documents (zip)', null); toast('Saved ' + p.code + '_documents.zip');
+  } catch (e) {
+    if (e && e.code === 'declined') return;
+    try {
+      const txt = picks.map(x => '=== ' + x.no + ' Rev ' + x.rev + ' ===\n' + (x.file ? '[' + x.file.name + ': original file, download it on its own]' : demoCopy(x))).join('\n\n');
+      await dl.save({ filename: p.code + '_documents.txt', data: txt });
+      audit('Downloaded', picks.length + ' documents (text)', null); toast('Zip was not allowed here, so saved one text file instead.');
+    } catch (e2) { toast('Download did not complete.'); }
+  }
+  if (S.tab === 'audit') renderMain();
+}
+
+const _viewAsk0 = viewAsk;
+viewAsk = function () { return _viewAsk0().replace('</p></div></div>', '</p></div><div class="btns"><button class="btn-g" type="button" data-act="exportChat">Export conversation</button></div></div>'); };
+const _renderThread0 = renderThread;
+renderThread = function (scroll) {
+  _renderThread0(false);
+  const t = $('thread'); if (!t) return;
+  Array.from(t.children).forEach((el, i) => { if (el.classList.contains('a') && el.querySelector('.ans p')) el.insertAdjacentHTML('beforeend', '<div class="actrow"><button type="button" class="btn-g btn-s" data-act="copyAns" data-i="' + i + '">Copy answer</button></div>'); });
+  if (scroll) t.scrollTop = t.scrollHeight;
+};
+function ansText(m) {
+  const r = m.r; if (!r || !r.parts) return '';
+  return r.parts.map(x => x.sentence + ' [' + x.c.label + ']').join('\n') + (r.notes && r.notes.length ? '\n\nNot used (superseded): ' + r.notes.map(n => n.c.ref + ' Rev ' + n.c.rev).join(', ') : '');
+}
+Object.assign(ACT, {
+  quick() { quickFind(); },
+  bell() { S.tried.bell = true; openOv(P().code, 'Alerts', alertsHtml()); },
+  zipSel() { zipSel(); },
+  copyAns(a) {
+    const m = (S.chats[chatKey()] || [])[+a.i]; if (!m) return;
+    const txt = ansText(m);
+    const done = () => toast('Answer copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => saveFile('answer.txt', txt));
+    else saveFile('answer.txt', txt);
+  },
+  exportChat() {
+    const msgs = S.chats[chatKey()] || [];
+    const txt = 'Docket conversation. ' + P().code + ', ' + ROLES[S.role].label + '. Sample data.\n\n' + msgs.map(m => m.role === 'u' ? 'Q: ' + m.text : 'A: ' + (ansText(m) || 'No answer found.')).join('\n\n');
+    saveFile(P().code + '_conversation.txt', txt).then(ok => { if (ok) audit('Exported conversation', P().code, null); });
+  }
+});
+
+/* ---------- v7 clarity ---------- */
+S.hintOff = {};
+const HINTS = {
+  dash: 'Your project at a glance. Red numbers need action. Click any row to open it.',
+  docs: 'Every drawing and file for this project. Click a row to open it. Tick rows to send or download several at once.',
+  mail: 'Formal letters and notices. Each one has a reply date, so nothing is forgotten.',
+  trans: 'A transmittal is a formal note that sends documents to someone and records their reply (code A to D).',
+  rfis: 'An RFI is a question to the designer. Open ones show who owes an answer and by when.',
+  ask: 'Type a question in plain words. Answers come from current versions only, and link to their source.',
+  audit: 'A record of who did what, and when. Only the document controller sees this.'
+};
+const _renderMain1 = renderMain;
+renderMain = function () {
+  _renderMain1();
+  const ph = $('main').querySelector('.ph');
+  if (ph && HINTS[S.tab] && !S.hintOff[S.tab]) ph.insertAdjacentHTML('afterend', '<div class="hint">' + ico('info', 18) + '<span>' + HINTS[S.tab] + '</span><button type="button" class="link" data-act="hintOff" data-tab="' + S.tab + '">Got it</button></div>');
+};
+const _viewAsk2 = viewAsk;
+viewAsk = function () {
+  return _viewAsk2().replace('<div class="chips">', '<p class="fine" style="margin: 2px 0 8px">Try asking:</p><div class="chips">')
+    .replace(/<p class="fine">Upload a \.txt[\s\S]*?<\/p>/, '<p class="fine">Tip: change "Viewing as" at the top to MEP Subcontractor, then ask the first question again, to see role limits.</p>');
+};
+ACT.hintOff = function (a) { S.hintOff[a.tab] = true; const h = document.querySelector('.hint'); if (h) h.remove(); };
+
+/* ---------- v8: Forms, Workflows, Tenders, Reports, Directory ---------- */
+Object.assign(ICON, {
+  forms: '<rect x="4.5" y="3" width="11" height="14.5" rx="1.6"/><path d="M8 3v2h4V3M7.5 9.5h5M7.5 12.5h5M7.5 15h2.5"/>',
+  work: '<circle cx="4.5" cy="10" r="2"/><circle cx="15.5" cy="5" r="2"/><circle cx="15.5" cy="15" r="2"/><path d="M6.5 10h3l4-4M9.5 10l4 4"/>',
+  tenders: '<path d="M10 3.5v13M5 16.5h10M4.5 7h11M4.5 7l-1.7 4.5a2.2 2.2 0 0 0 3.4 0L4.5 7zM15.5 7l-1.7 4.5a2.2 2.2 0 0 0 3.4 0L15.5 7z"/>',
+  reports: '<path d="M4 16.5h12M5.5 16V9M10 16V4M14.5 16v-5"/>',
+  dir: '<circle cx="8" cy="7" r="2.6"/><path d="M3 16c0-3 2.2-4.5 5-4.5s5 1.5 5 4.5"/><path d="M13 5a2.4 2.4 0 0 1 0 4.6M15.8 15.5c0-2-1-3.3-2.6-3.9"/>'
+});
+D.awt.forms = [
+  { no: 'AWT-NCR-0003', type: 'NCR', title: 'Wrong insulation thickness on chilled water riser', disc: 'MEP', from: 'Consultant', to: 'MEP Subcontractor', date: '2026-08-20', due: '2026-09-03', status: 'Closed', detail: 'Insulation on the Level 2 chilled water riser is 25 mm. The specification requires 40 mm.', response: 'Insulation replaced with 40 mm material and re-inspected.', respondedDate: '2026-09-01', closedDate: '2026-09-04' },
+  { no: 'AWT-NCR-0004', type: 'NCR', title: 'Honeycombing on column C7, Level 2', disc: 'STR', from: 'Consultant', to: 'Main Contractor', date: '2026-09-29', due: '2026-10-13', status: 'Open', detail: 'Honeycombing found on column C7 at Level 2 after formwork removal. A repair method statement is required before any patching.', response: null, respondedDate: null, closedDate: null },
+  { no: 'AWT-SI-0011', type: 'SI', title: 'Relocate tower crane base', disc: 'GEN', from: 'Employer', to: 'Main Contractor', date: '2026-09-18', due: '2026-09-25', status: 'Responded', detail: 'Move the tower crane base 3 m east to clear the utility corridor. Confirm programme impact in writing.', response: 'Relocation agreed. Programme impact is 6 days, see AWT-COR-0067.', respondedDate: '2026-09-22', closedDate: null },
+  { no: 'AWT-INS-0027', type: 'INS', title: 'Level 3 reinforcement inspection before pour', disc: 'STR', from: 'Main Contractor', to: 'Consultant', date: '2026-10-10', due: '2026-10-14', status: 'Open', detail: 'Reinforcement for the Level 3 podium slab is complete. Please inspect before the concrete pour planned for 15 October.', response: null, respondedDate: null, closedDate: null }
+];
+D.wap.forms = [
+  { no: 'WAP-NCR-0001', type: 'NCR', title: 'Blinding thickness below specification', disc: 'CIV', from: 'Consultant', to: 'Main Contractor', date: '2026-09-25', due: '2026-10-09', status: 'Open', detail: 'Blinding concrete under the wet well base is 50 mm. The drawing requires 75 mm.', response: null, respondedDate: null, closedDate: null },
+  { no: 'WAP-INS-0004', type: 'INS', title: 'Wet well excavation level check', disc: 'CIV', from: 'Main Contractor', to: 'Consultant', date: '2026-09-30', due: '2026-10-02', status: 'Closed', detail: 'Excavation has reached the formation level. Please inspect.', response: 'Level accepted.', respondedDate: '2026-10-01', closedDate: '2026-10-01' }
+];
+D.awt.work = [
+  { no: 'AWT-WF-0001', title: 'Review of Facade and Curtain Wall Specification', docNo: 'AWT-ARC-SPC-0009', rev: 'B', disc: 'ARC', started: '2026-10-05', due: '2026-10-20', status: 'In review', steps: [
+    { name: 'Check', org: 'Main Contractor', status: 'Done', by: 'Layla Nasser', date: '2026-10-05', outcome: 'Approved', note: 'Format and numbering checked.' },
+    { name: 'Technical review', org: 'Consultant', status: 'Current', by: null, date: null, outcome: null, note: '' },
+    { name: 'Approval', org: 'Employer', status: 'Waiting', by: null, date: null, outcome: null, note: '' }] },
+  { no: 'AWT-WF-0002', title: 'Review of Level 3 Chilled Water Pipework Layout', docNo: 'AWT-MEP-DWG-0210', rev: 'B', disc: 'MEP', started: '2026-07-20', due: '2026-08-05', status: 'Approved', steps: [
+    { name: 'Check', org: 'Main Contractor', status: 'Done', by: 'Layla Nasser', date: '2026-07-20', outcome: 'Approved', note: '' },
+    { name: 'Technical review', org: 'Consultant', status: 'Done', by: 'Sara Khalid', date: '2026-07-28', outcome: 'Approved with comments', note: 'Add fire damper locations to the next revision.' },
+    { name: 'Approval', org: 'Employer', status: 'Done', by: 'Khalid Al-Rashid', date: '2026-08-01', outcome: 'Approved', note: '' }] }
+];
+D.wap.work = [];
+D.awt.tenders = [{ no: 'AWT-TND-001', title: 'Landscaping and external works package', closes: '2026-10-30', status: 'Open for bids', awarded: null, scope: 'Hard and soft landscaping, irrigation and external lighting for the podium and ground level.', bids: [
+  { org: 'Green Court Contracting', price: 4850000, days: 140, date: '2026-10-08', note: 'Includes 12 months maintenance.' },
+  { org: 'Najd Landscaping', price: 5120000, days: 120, date: '2026-10-09', note: 'Excludes external lighting.' },
+  { org: 'Oasis Works', price: 4620000, days: 165, date: '2026-10-10', note: 'Phased handover.' }] }];
+D.wap.tenders = [{ no: 'WAP-TND-001', title: 'Standby generator supply', closes: '2026-11-05', status: 'Open for bids', awarded: null, scope: 'Supply and install two 500 kVA standby generators.', bids: [{ org: 'Gulf Power Systems', price: 1340000, days: 90, date: '2026-10-07', note: '' }] }];
+D.awt.dir = [
+  { org: 'Employer', role: 'Owner', people: [['Khalid Al-Rashid', 'Project Director']], discs: 'All' },
+  { org: 'Consultant', role: 'Design and supervision', people: [['Sara Khalid', 'Lead Engineer'], ['Tariq Mansour', 'Structural Engineer']], discs: 'All' },
+  { org: 'Main Contractor', role: 'Construction', people: [['Layla Nasser', 'Document Controller'], ['Faisal Qureshi', 'Project Manager']], discs: 'All' },
+  { org: 'MEP Subcontractor', role: 'Mechanical, electrical and plumbing', people: [['Omar Haddad', 'MEP Coordinator']], discs: 'Mechanical, electrical, health and safety' }];
+D.wap.dir = [
+  { org: 'Employer', role: 'Owner', people: [['Nadia Al-Otaibi', 'Programme Manager']], discs: 'All' },
+  { org: 'Consultant', role: 'Design and supervision', people: [['Sara Khalid', 'Lead Engineer']], discs: 'All' },
+  { org: 'Main Contractor', role: 'Construction', people: [['Layla Nasser', 'Document Controller']], discs: 'All' }];
+
+/* ---- shared helpers ---- */
+const SAR = n => 'SAR ' + Number(n).toLocaleString('en-US');
+const FT = { NCR: 'Non-conformance report', SI: 'Site instruction', INS: 'Inspection request' };
+const FT_HELP = { NCR: 'A defect that must be fixed', SI: 'An order to do something on site', INS: 'A request to inspect completed work' };
+const formStatus = f => f.status === 'Open' && f.due < TODAY ? 'Overdue' : f.status;
+const wfStatus = w => w.status === 'In review' && w.due < TODAY ? 'Overdue' : w.status;
+const noAccess = (t, msg) => '<div class="ph"><div><h2>' + t + '</h2></div></div><section class="panel"><div class="empty">' + msg + '</div></section>';
+const csvDownload = (name, rows) => saveFile(P().code + '_' + name + '.csv', toCsv(rows)).then(ok => { if (ok) audit('Exported report', name, null); });
+
+/* ---- Forms ---- */
+S.formF = 'all';
+function viewForms() {
+  const p = P(), all = p.forms.filter(vis), rows = all.filter(f => S.formF === 'all' || f.type === S.formF).sort((a, b) => a.date < b.date ? 1 : -1);
+  const cnt = k => all.filter(f => f.type === k).length;
+  return '<div class="ph"><div><h2>Forms</h2><p class="sub">Site forms with an owner, a due date and a recorded reply</p></div><div class="btns"><button class="btn" type="button" data-act="newForm">New form</button></div></div>' +
+    '<div class="chips">' + [['all', 'All', all.length]].concat(Object.keys(FT).map(k => [k, FT[k], cnt(k)])).map(([k, l, n]) => '<button type="button" class="chip" data-act="formF" data-v="' + k + '" aria-pressed="' + (S.formF === k) + '">' + l + ' <span class="num muted">' + n + '</span></button>').join('') + '</div>' +
+    '<section class="panel"><div class="tablewrap"><table><thead><tr><th>No.</th><th>Title</th><th>Type</th><th>Discipline</th><th>To</th><th>Due</th><th>Status</th></tr></thead><tbody>' +
+    (rows.map(f => '<tr tabindex="0" data-act="form" data-no="' + esc(f.no) + '"><td class="mono">' + esc(f.no) + '</td><td>' + esc(f.title) + '</td><td>' + esc(FT[f.type]) + '</td><td>' + esc(DISC[f.disc] || f.disc) + '</td><td>' + esc(f.to) + '</td><td class="num">' + fmtDate(f.due) + '</td><td>' + pill(formStatus(f)) + '</td></tr>').join('') || '<tr><td colspan="7" class="empty">No forms in this view.</td></tr>') +
+    '</tbody></table></div></section>';
+}
+function sheetForm(no) {
+  const f = P().forms.find(x => x.no === no); if (!f) return;
+  openOv(f.no, f.title,
+    meta([['Type', esc(FT[f.type])], ['Discipline', esc(DISC[f.disc] || f.disc)], ['From', esc(f.from)], ['To', esc(f.to)], ['Raised', fmtDate(f.date)], ['Due', fmtDate(f.due)], ['Status', pill(formStatus(f))]]) +
+    '<div><h4>Details</h4><p class="body-text">' + esc(f.detail) + '</p></div>' +
+    (f.response ? '<div><h4>Reply, ' + fmtDate(f.respondedDate) + '</h4><p class="body-text">' + esc(f.response) + '</p></div>' : '') +
+    (f.status === 'Open' ? '<form class="form" data-form="formReply" data-no="' + esc(no) + '"><div class="f"><label for="fmRep">Record the reply</label><textarea id="fmRep" required></textarea></div><div class="btns"><button class="btn" type="submit">Save reply</button></div></form>' : '') +
+    (f.status === 'Responded' ? '<div class="btns"><button class="btn" type="button" data-act="closeForm" data-no="' + esc(no) + '">Close out this form</button></div>' : '') +
+    (f.status === 'Closed' ? '<p class="fine">Closed on ' + fmtDate(f.closedDate) + '.</p>' : ''));
+}
+function formNew() {
+  openOv('New form', 'Raise a form',
+    '<form class="form" data-form="formNew" novalidate><div class="fr"><div class="f"><label for="fnType">Type</label><select id="fnType">' + Object.keys(FT).map(k => '<option value="' + k + '">' + FT[k] + ' (' + FT_HELP[k].toLowerCase() + ')</option>').join('') + '</select></div>' +
+    '<div class="f"><label for="fnDisc">Discipline</label><select id="fnDisc">' + discOpts(S.role === 'sub' ? 'MEP' : 'STR') + '</select></div></div>' +
+    '<div class="f"><label for="fnTitle">Title</label><input type="text" id="fnTitle"></div>' +
+    '<div class="fr"><div class="f"><label for="fnTo">To</label><select id="fnTo">' + orgOpts('Main Contractor') + '</select></div><div class="f"><label for="fnDue">Reply due</label><input type="date" id="fnDue"></div></div>' +
+    '<div class="f"><label for="fnDet">Details</label><textarea id="fnDet"></textarea></div>' +
+    '<p class="err" id="fnErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Raise form</button></div></form>');
+}
+Object.assign(FORMS, {
+  formNew() {
+    const p = P(), err = $('fnErr'), fail = m => { err.textContent = m; err.hidden = false; };
+    const type = $('fnType').value, title = $('fnTitle').value.trim(), det = $('fnDet').value.trim(), due = $('fnDue').value;
+    if (!title) return fail('Enter a title.'); if (!det) return fail('Describe the issue.'); if (!due) return fail('Set a reply due date.');
+    const no = nextRef(p.forms.filter(x => x.type === type), 'no', p.code + '-' + type);
+    p.forms.push({ no, type, title, disc: $('fnDisc').value, from: user().org, to: $('fnTo').value, date: TODAY, due, status: 'Open', detail: det, response: null, respondedDate: null, closedDate: null });
+    audit('Raised form', no, $('fnDisc').value); closeOv(); S.tab = 'forms'; S.formF = 'all'; renderApp(); toast('Raised ' + no);
+  },
+  formReply(f) {
+    const x = P().forms.find(y => y.no === f.dataset.no), t = $('fmRep').value.trim(); if (!x || !t) return;
+    x.response = t; x.respondedDate = TODAY; x.status = 'Responded'; audit('Replied to form', x.no, x.disc); sheetForm(x.no); renderMain(); toast('Reply saved');
+  }
+});
+
+/* ---- Workflows ---- */
+function stepTrack(w) {
+  return '<ol class="trk">' + w.steps.map((s, i) => '<li class="' + s.status.toLowerCase() + (s.outcome === 'Rejected' ? ' rej' : '') + '"><span class="dot">' + (s.status === 'Done' ? (s.outcome === 'Rejected' ? '&times;' : '&#10003;') : (i + 1)) + '</span><b>' + esc(s.name) + '</b><span class="fine">' + esc(s.org) + '</span>' + (s.outcome ? '<span class="fine">' + esc(s.outcome) + (s.date ? ', ' + fmtDate(s.date) : '') + '</span>' : (s.status === 'Current' ? '<span class="fine">Waiting for decision</span>' : '')) + '</li>').join('') + '</ol>';
+}
+function viewWork() {
+  const p = P(), rows = p.work.filter(vis).sort((a, b) => a.started < b.started ? 1 : -1);
+  return '<div class="ph"><div><h2>Workflows</h2><p class="sub">Send a document through check, review and approval</p></div><div class="btns"><button class="btn" type="button" data-act="newWorkPick">Start a review</button></div></div>' +
+    (rows.length ? rows.map(w => '<section class="panel wfc" tabindex="0" data-act="work" data-no="' + esc(w.no) + '"><div class="panel-h"><h3>' + esc(w.title) + '</h3>' + pill(wfStatus(w)) + '</div><div class="wfb"><p class="fine"><span class="mono">' + esc(w.no) + '</span> &middot; ' + esc(w.docNo) + ' Rev ' + esc(w.rev) + ' &middot; due ' + fmtDate(w.due) + '</p>' + stepTrack(w) + '</div></section>').join('') :
+      '<section class="panel"><div class="empty">No reviews yet. Open a document and choose "Start review", or use the button above.</div></section>');
+}
+function sheetWork(no) {
+  const w = P().work.find(x => x.no === no); if (!w) return;
+  const cur = w.steps.find(s => s.status === 'Current');
+  openOv(w.no, w.title,
+    meta([['Document', esc(w.docNo + ' Rev ' + w.rev)], ['Started', fmtDate(w.started)], ['Due', fmtDate(w.due)], ['Status', pill(wfStatus(w))]]) + stepTrack(w) +
+    w.steps.filter(s => s.note).map(s => '<div class="note-b"><b>' + esc(s.name) + ', ' + esc(s.by || s.org) + ':</b> ' + esc(s.note) + '</div>').join('') +
+    (cur ? '<form class="form" data-form="workDecide" data-no="' + esc(no) + '"><h4>Record the decision for "' + esc(cur.name) + '" (' + esc(cur.org) + ')</h4><div class="fr"><div class="f"><label for="wdOut">Decision</label><select id="wdOut"><option>Approved</option><option>Approved with comments</option><option>Rejected</option></select></div></div><div class="f"><label for="wdNote">Comment</label><textarea id="wdNote"></textarea></div><p class="fine">Recorded by ' + esc(user().name) + (user().org !== cur.org ? ' on behalf of ' + esc(cur.org) : '') + '.</p><div class="btns"><button class="btn" type="submit">Save decision</button></div></form>' : '') +
+    '<div class="btns"><button class="btn-g" type="button" data-act="doc" data-no="' + esc(w.docNo) + '" data-rev="' + esc(w.rev) + '">Open document</button></div>');
+}
+function formWork(no, rev) {
+  const p = P(), docs = p.docs.filter(x => vis(x) && x.current);
+  const pre = no ? no + '|' + rev : '';
+  openOv('Start review', 'Start a review workflow',
+    '<form class="form" data-form="workStart" novalidate><div class="f"><label for="wsDoc">Document</label><select id="wsDoc">' + docs.map(x => '<option value="' + esc(x.no + '|' + x.rev) + '"' + (x.no + '|' + x.rev === pre ? ' selected' : '') + '>' + esc(x.no + ' Rev ' + x.rev + ', ' + x.title) + '</option>').join('') + '</select></div>' +
+    '<div class="f"><label>Steps</label><div class="chk-col"><label class="chk"><input type="checkbox" checked disabled> Check (Main Contractor)</label><label class="chk"><input type="checkbox" id="wsS2" checked> Technical review (Consultant)</label><label class="chk"><input type="checkbox" id="wsS3" checked> Approval (Employer)</label></div></div>' +
+    '<div class="f"><label for="wsDue">Finish by</label><input type="date" id="wsDue"></div><p class="err" id="wsErr" hidden></p>' +
+    '<div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Start review</button></div></form>');
+}
+Object.assign(FORMS, {
+  workStart() {
+    const p = P(), err = $('wsErr'), due = $('wsDue').value; if (!due) { err.textContent = 'Set a finish date.'; err.hidden = false; return; }
+    const [no, rev] = $('wsDoc').value.split('|'), doc = p.docs.find(x => x.no === no && x.rev === rev);
+    const steps = [{ name: 'Check', org: 'Main Contractor' }]; if ($('wsS2').checked) steps.push({ name: 'Technical review', org: 'Consultant' }); if ($('wsS3').checked) steps.push({ name: 'Approval', org: 'Employer' });
+    const wno = nextRef(p.work, 'no', p.code + '-WF');
+    p.work.push({ no: wno, title: 'Review of ' + doc.title, docNo: no, rev, disc: doc.disc, started: TODAY, due, status: 'In review', steps: steps.map((s, i) => ({ name: s.name, org: s.org, status: i === 0 ? 'Current' : 'Waiting', by: null, date: null, outcome: null, note: '' })) });
+    audit('Started review', wno + ' for ' + no + ' Rev ' + rev, doc.disc); closeOv(); S.tab = 'work'; renderApp(); toast('Started ' + wno);
+  },
+  workDecide(f) {
+    const w = P().work.find(x => x.no === f.dataset.no), i = w.steps.findIndex(s => s.status === 'Current'); if (i < 0) return;
+    const s = w.steps[i]; s.outcome = $('wdOut').value; s.note = $('wdNote').value.trim(); s.by = user().name; s.date = TODAY; s.status = 'Done';
+    if (s.outcome === 'Rejected') { w.status = 'Rejected'; w.steps.slice(i + 1).forEach(x => { x.status = 'Skipped'; }); }
+    else if (w.steps[i + 1]) w.steps[i + 1].status = 'Current'; else w.status = 'Approved';
+    audit('Review decision', w.no + ' (' + s.name + ': ' + s.outcome + ')', w.disc); sheetWork(w.no); renderMain(); renderNav(); toast('Decision recorded');
+  }
+});
+
+/* ---- Tenders ---- */
+function viewTenders() {
+  if (S.role !== 'dc') return noAccess('Tenders', 'Tenders are limited to the Document Controller. Change "Viewing as" to Document Controller to see them.');
+  const ts = P().tenders;
+  return '<div class="ph"><div><h2>Tenders</h2><p class="sub">Collect bids and compare them side by side</p></div></div>' +
+    ts.map(t => {
+      const min = Math.min.apply(null, t.bids.map(b => b.price)), fast = Math.min.apply(null, t.bids.map(b => b.days));
+      return '<section class="panel"><div class="panel-h"><h3>' + esc(t.title) + '</h3>' + pill(t.awarded ? 'Awarded' : t.status) + '</div><div style="padding: 4px 18px 16px"><p class="fine"><span class="mono">' + esc(t.no) + '</span> &middot; closes ' + fmtDate(t.closes) + '</p><p style="margin: 8px 0 12px">' + esc(t.scope) + '</p>' +
+        '<div class="tablewrap"><table><thead><tr><th>Bidder</th><th>Price</th><th>Duration</th><th>Submitted</th><th>Note</th><th></th></tr></thead><tbody>' +
+        t.bids.map(b => '<tr class="' + (t.awarded === b.org ? 'flash' : '') + '"><td>' + esc(b.org) + '</td><td class="num">' + SAR(b.price) + (b.price === min ? ' <span class="pill ok">Lowest</span>' : '') + '</td><td class="num">' + b.days + ' days' + (b.days === fast ? ' <span class="pill ok">Fastest</span>' : '') + '</td><td class="num">' + fmtDate(b.date) + '</td><td>' + esc(b.note || '') + '</td><td>' + (t.awarded ? (t.awarded === b.org ? '<span class="pill ok">Awarded</span>' : '') : '<button type="button" class="btn-g btn-s" data-act="award" data-no="' + esc(t.no) + '" data-org="' + esc(b.org) + '">Award</button>') + '</td></tr>').join('') +
+        '</tbody></table></div>' + (t.awarded ? '' : '<div class="btns" style="margin-top: 12px"><button class="btn-g" type="button" data-act="newBid" data-no="' + esc(t.no) + '">Add a bid</button></div>') + '</div></section>';
+    }).join('');
+}
+function formBid(no) {
+  openOv(no, 'Add a bid', '<form class="form" data-form="bidNew" data-no="' + esc(no) + '" novalidate><div class="f"><label for="bdOrg">Company</label><input type="text" id="bdOrg"></div><div class="fr"><div class="f"><label for="bdPrice">Price (SAR)</label><input type="text" id="bdPrice" inputmode="numeric"></div><div class="f"><label for="bdDays">Duration (days)</label><input type="text" id="bdDays" inputmode="numeric"></div></div><div class="f"><label for="bdNote">Note</label><input type="text" id="bdNote"></div><p class="err" id="bdErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Add bid</button></div></form>');
+}
+FORMS.bidNew = function (f) {
+  const t = P().tenders.find(x => x.no === f.dataset.no), err = $('bdErr'), org = $('bdOrg').value.trim(), price = parseInt(($('bdPrice').value || '').replace(/[^0-9]/g, ''), 10), days = parseInt($('bdDays').value, 10);
+  if (!org || !(price > 0) || !(days > 0)) { err.textContent = 'Enter the company, a price and a duration in days.'; err.hidden = false; return; }
+  t.bids.push({ org, price, days, date: TODAY, note: $('bdNote').value.trim() }); audit('Added bid', t.no + ' (' + org + ')', null); closeOv(); renderMain(); toast('Bid added');
+};
+
+/* ---- Reports ---- */
+function reportData() {
+  const p = P(), docs = p.docs.filter(vis), discs = Array.from(new Set(docs.map(x => x.disc))).sort();
+  const regRows = [['Discipline', 'Current', 'Superseded', 'For construction', 'For approval', 'For information']].concat(discs.map(d => { const l = docs.filter(x => x.disc === d), c = l.filter(x => x.current); return [DISC[d] || d, c.length, l.length - c.length, c.filter(x => x.status === 'IFC').length, c.filter(x => x.status === 'IFA').length, c.filter(x => x.status === 'ISSUED').length]; }));
+  const owe = {};
+  const add = (org, kind) => { (owe[org] = owe[org] || { Overdue: 0, Open: 0 }); owe[org][kind]++; };
+  p.mail.filter(vis).filter(m => m.status === 'Open' && m.due).forEach(m => add(m.to, m.due < TODAY ? 'Overdue' : 'Open'));
+  p.rfis.filter(vis).filter(r => r.status === 'Open').forEach(r => add(r.to, r.due < TODAY ? 'Overdue' : 'Open'));
+  p.trans.filter(vis).filter(t => t.status === 'Awaiting response').forEach(t => add(t.to, t.due && t.due < TODAY ? 'Overdue' : 'Open'));
+  p.forms.filter(vis).filter(f => f.status === 'Open').forEach(f => add(f.to, f.due < TODAY ? 'Overdue' : 'Open'));
+  const oweRows = [['Organisation', 'Overdue', 'Not yet due']].concat(Object.keys(owe).sort().map(o => [o, owe[o].Overdue, owe[o].Open]));
+  const tr = p.trans.filter(t => vis(t) && t.status === 'Responded' && t.response);
+  const trRows = [['Transmittal', 'To', 'Issued', 'Replied', 'Days', 'Code']].concat(tr.map(t => [t.no, t.to, t.date, t.response.date, dayN(t.response.date) - dayN(t.date), t.response.code]));
+  const fm = p.forms.filter(vis), fRows = [['Type', 'Open', 'Responded', 'Closed']].concat(Object.keys(FT).map(k => [FT[k], fm.filter(f => f.type === k && f.status === 'Open').length, fm.filter(f => f.type === k && f.status === 'Responded').length, fm.filter(f => f.type === k && f.status === 'Closed').length]));
+  const wf = p.work.filter(vis), wRows = [['Status', 'Reviews']].concat(['In review', 'Approved', 'Rejected'].map(s => [s, wf.filter(w => w.status === s).length]));
+  return [['register', 'Register by discipline', 'How many current and superseded documents each discipline holds.', regRows], ['owed', 'Who owes a reply', 'Open mail, RFIs, transmittals and forms, grouped by the organisation that must answer.', oweRows], ['transmittals', 'Transmittal reply times', 'Days between issuing and the recorded reply, with the review code.', trRows], ['forms', 'Forms by type', 'Site forms by type and status.', fRows], ['reviews', 'Review workflows', 'How many reviews are in progress, approved or rejected.', wRows]];
+}
+function viewReports() {
+  const reps = reportData();
+  return '<div class="ph"><div><h2>Reports</h2><p class="sub">Ready-made reports for this project. Download any of them as CSV.</p></div></div>' +
+    reps.map(r => '<section class="panel"><div class="panel-h"><div><h3>' + r[1] + '</h3><p class="fine">' + r[2] + '</p></div><button class="btn-g btn-s" type="button" data-act="exportReport" data-k="' + r[0] + '">Download CSV</button></div><div class="tablewrap"><table><thead><tr>' + r[3][0].map(h => '<th>' + esc(h) + '</th>').join('') + '</tr></thead><tbody>' +
+      (r[3].length > 1 ? r[3].slice(1).map(row => '<tr>' + row.map((c, i) => '<td' + (i && typeof c === 'number' ? ' class="num"' : '') + '>' + esc(c) + '</td>').join('') + '</tr>').join('') : '<tr><td colspan="' + r[3][0].length + '" class="empty">Nothing to report yet.</td></tr>') + '</tbody></table></div></section>').join('');
+}
+
+/* ---- Directory ---- */
+function viewDir() {
+  const p = P();
+  return '<div class="ph"><div><h2>Directory</h2><p class="sub">Who is on this project, and what each organisation can see</p></div><div class="btns"><button class="btn" type="button" data-act="newOrg">Invite someone</button></div></div>' +
+    '<div class="orgs">' + p.dir.map(o => '<section class="panel org"><div class="panel-h"><div><h3>' + esc(o.org) + '</h3><p class="fine">' + esc(o.role) + '</p></div><span class="tagp">' + o.people.length + (o.people.length === 1 ? ' person' : ' people') + '</span></div><ul class="ppl">' +
+      o.people.map(pp => '<li><span class="avatar sm" aria-hidden="true">' + esc(pp[0].split(' ').map(x => x[0]).join('')) + '</span><span><b>' + esc(pp[0]) + '</b><br><span class="fine">' + esc(pp[1]) + '</span></span></li>').join('') +
+      '</ul><p class="fine" style="padding: 0 18px 14px">Can open: ' + esc(o.discs) + '</p></section>').join('') + '</div>';
+}
+function formOrg() {
+  openOv('Directory', 'Invite someone to this project', '<form class="form" data-form="orgNew" novalidate><div class="fr"><div class="f"><label for="orName">Name</label><input type="text" id="orName"></div><div class="f"><label for="orTitle">Job title</label><input type="text" id="orTitle"></div></div><div class="f"><label for="orOrg">Organisation</label><select id="orOrg">' + P().dir.map(o => '<option>' + esc(o.org) + '</option>').join('') + '</select></div><p class="fine">In the demo nobody receives an invitation. The person is added to the list only.</p><p class="err" id="orErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Add to directory</button></div></form>');
+}
+FORMS.orgNew = function () {
+  const n = $('orName').value.trim(), t = $('orTitle').value.trim(); if (!n || !t) { $('orErr').textContent = 'Enter a name and a job title.'; $('orErr').hidden = false; return; }
+  P().dir.find(o => o.org === $('orOrg').value).people.push([n, t]); audit('Added to directory', n, null); closeOv(); renderMain(); toast('Added ' + n);
+};
+
+/* ---- wiring into the rest of the app ---- */
+Object.assign(HINTS, {
+  forms: 'Site forms: non-conformance reports, site instructions and inspection requests. Open a row to reply or close it out.',
+  work: 'Send a document through check, review and approval. Each step shows who must decide next.',
+  tenders: 'Collect bids for a package and compare price and time side by side. The lowest and fastest are marked.',
+  reports: 'Ready-made reports you can read here or download as CSV for Excel.',
+  dir: 'Everyone on this project and what each organisation is allowed to open.'
+});
+Object.assign(NAVSUB, { forms: 'NCRs, instructions, inspections', work: 'Review and approval', tenders: 'Bids and comparison', reports: 'Numbers you can download', dir: 'People and organisations' });
+KIND_ICON.form = 'forms'; KIND_ICON.work = 'work';
+const _openItem0 = openItem;
+openItem = function (kind, key, pg) { if (kind === 'form') sheetForm(key); else if (kind === 'work') sheetWork(key); else _openItem0(kind, key, pg); };
+const _srcMeta0 = srcMeta;
+srcMeta = function (c) { if (c.kind === 'form') { const x = P().forms.find(y => y.no === c.ref); return { kind: x ? FT[x.type] : 'Form', title: x ? x.title : c.ref }; } return _srcMeta0(c); };
+const _openItems0 = openItems;
+openItems = function () {
+  const p = P(), extra = [];
+  p.forms.filter(f => vis(f) && f.status === 'Open').forEach(f => extra.push({ kind: 'form', key: f.no, label: f.type, title: f.title, due: f.due }));
+  p.work.filter(w => vis(w) && w.status === 'In review').forEach(w => extra.push({ kind: 'work', key: w.no, label: 'Review', title: w.title, due: w.due }));
+  return _openItems0().concat(extra).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1);
+};
+KIND_LABEL.form = 'Form'; KIND_LABEL.work = 'Review';
+const _findAll0 = findAll;
+findAll = function (q) {
+  const out = _findAll0(q), s = q.trim().toLowerCase(), p = P(); if (!s) return out;
+  p.forms.filter(vis).forEach(f => { if ((f.no + ' ' + f.title + ' ' + FT[f.type]).toLowerCase().includes(s)) out.push({ kind: 'form', key: f.no, ref: f.no, title: f.title, tag: f.status }); });
+  p.work.filter(vis).forEach(w => { if ((w.no + ' ' + w.title + ' ' + w.docNo).toLowerCase().includes(s)) out.push({ kind: 'work', key: w.no, ref: w.no, title: w.title, tag: w.status }); });
+  return out;
+};
+const _sheetDoc2 = sheetDoc;
+sheetDoc = function (no, rev, pg) {
+  _sheetDoc2(no, rev, pg);
+  const p = P(), doc = p.docs.find(x => x.no === no && x.rev === rev); if (!doc || !$('ovB')) return;
+  const w = p.work.filter(x => x.docNo === no && x.rev === rev);
+  $('ovB').insertAdjacentHTML('beforeend', '<div><h4>Review workflow</h4>' + (w.length ? w.map(x => '<p><button type="button" class="cite" data-act="work" data-no="' + esc(x.no) + '">' + esc(x.no) + '</button> ' + pill(wfStatus(x)) + '</p>').join('') : '<p class="fine">No review has been started for this version.</p>') + (doc.current ? '<div class="btns"><button class="btn-g btn-s" type="button" data-act="newWork" data-no="' + esc(no) + '" data-rev="' + esc(rev) + '">Start review</button></div>' : '') + '</div>');
+};
+Object.assign(ACT, {
+  newForm() { formNew(); }, form(a) { sheetForm(a.no); }, formF(a) { S.formF = a.v; renderMain(); },
+  closeForm(a) { const f = P().forms.find(x => x.no === a.no); if (!f) return; f.status = 'Closed'; f.closedDate = TODAY; audit('Closed form', f.no, f.disc); sheetForm(f.no); renderMain(); toast('Closed ' + f.no); },
+  work(a) { sheetWork(a.no); }, newWork(a) { formWork(a.no, a.rev); }, newWorkPick() { formWork(); },
+  newBid(a) { formBid(a.no); },
+  award(a) { const t = P().tenders.find(x => x.no === a.no); if (!t) return; t.awarded = a.org; t.status = 'Awarded'; audit('Awarded tender', t.no + ' to ' + a.org, null); renderMain(); toast('Awarded to ' + a.org); },
+  exportReport(a) { const r = reportData().find(x => x[0] === a.k); if (r) csvDownload(a.k, r[3]); },
+  newOrg() { formOrg(); }
+});
+/* ---------- wiring ---------- */
+$('proj').innerHTML = Object.keys(D).map(k => '<option value="' + k + '">' + esc(D[k].code + ' · ' + D[k].name) + '</option>').join('');
+$('role').innerHTML = Object.keys(ROLES).map(k => '<option value="' + k + '">' + esc(ROLES[k].label) + '</option>').join('');
+$('proj').addEventListener('change', e => { S.proj = e.target.value; S.sel.clear(); renderApp(); });
+$('role').addEventListener('change', e => { S.role = e.target.value; S.sel.clear(); renderApp(); });
+document.addEventListener('click', e => {
+  if (e.target === $('ov')) { closeOv(); return; }
+  const el = e.target.closest('[data-act]');
+  if (!el || !ACT[el.dataset.act]) return;
+  if (el.dataset.act === 'dlDoc') e.stopPropagation();
+  ACT[el.dataset.act](el.dataset, el, e);
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('form'); if (!f) return;
+  e.preventDefault();
+  if (f.id === 'gAsk') { const v = $('gq').value.trim(); if (!v) return; $('gq').value = ''; S.tab = 'ask'; renderNav(); renderMain(); ask(v); return; }
+  if (f.id === 'askForm') { const v = $('q').value; $('q').value = ''; ask(v); return; }
+  const fn = FORMS[f.dataset.form]; if (fn) fn(f);
+});
+document.addEventListener('input', e => {
+  const id = e.target.id;
+  if (id === 'fq') { S.f.q = e.target.value; fillDocs(); }
+  else if (id === 'upNo') { S.upAuto = false; autofillFromNo(); }
+});
+document.addEventListener('change', e => {
+  const id = e.target.id;
+  if (id === 'fdisc') { S.f.disc = e.target.value; fillDocs(); }
+  else if (id === 'fstat') { S.f.status = e.target.value; fillDocs(); }
+  else if (id === 'fcur') { S.f.cur = e.target.checked; fillDocs(); }
+  else if (id === 'faud') { S.auditF = e.target.value; renderMain(); }
+  else if (id === 'upFile') { onFileChosen(e.target.files && e.target.files[0]); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('ov').hidden) { closeOv(); return; }
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('tr[data-act]')) e.target.click();
+});
+document.addEventListener('dragover', e => { const z = e.target.closest && e.target.closest('#dz'); if (z) { e.preventDefault(); z.classList.add('dz-on'); } });
+document.addEventListener('dragleave', e => { const z = $('dz'); if (z && !z.contains(e.relatedTarget)) z.classList.remove('dz-on'); });
+document.addEventListener('drop', e => {
+  const z = e.target.closest && e.target.closest('#dz'); if (!z) return;
+  e.preventDefault(); z.classList.remove('dz-on');
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) { S.up = null; S.upAuto = false; formUpload(); onFileChosen(f); }
+});
+
+initSite();
+
+</script>
 </body>
 </html>
