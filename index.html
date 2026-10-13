@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docket</title>
+<meta name="description" content="Docket: document control for construction projects, with answers you can trace. Concept demo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ============ PRODUCT SITE ============ -->
+<div id="site">
+  <header class="sitebar">
+    <div class="c">
+      <button class="wordmark" type="button" data-act="site" aria-label="Docket home"><span class="rv" aria-hidden="true">R</span>Docket</button>
+      <nav class="sitenav" aria-label="Site">
+        <button class="link" type="button" data-act="scroll" data-target="why">Why Docket</button>
+        <button class="link" type="button" data-act="scroll" data-target="flow">How it works</button>
+        <button class="link" type="button" data-act="scroll" data-target="modules">Modules</button>
+        <button class="link" type="button" data-act="scroll" data-target="access">Access</button>
+        <button class="link" type="button" data-act="scroll" data-target="faq">FAQ</button>
+        <button class="btn" type="button" data-act="openDemo" data-tab="dash">Try the demo</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero c">
+    <div>
+      <div class="kicker">Document control for construction projects &middot; Concept demo</div>
+      <h1>The right revision, <em>every time.</em></h1>
+      <p class="lede">Docket keeps drawings, letters, transmittals and RFIs in one controlled register. Ask it a question and it answers from current revisions only, with the page it read.</p>
+      <div class="btns">
+        <button class="btn" type="button" data-act="openDemo" data-tab="dash">Try the demo</button>
+        <button class="btn-g" type="button" data-act="scroll" data-target="flow">See how it works</button>
+      </div>
+      <ul class="proof">
+        <li>Superseded revisions never answer a question</li>
+        <li>Every view, upload and download is in the audit trail</li>
+        <li>Subcontractors see only their own disciplines</li>
+      </ul>
+    </div>
+    <div class="sheet-card">
+      <svg id="heroSheet" class="sheet-svg" viewBox="0 0 600 440" role="img" aria-label="Structural drawing sheet for the Level 3 podium slab. A revision cloud marks the slab thickness, changed from 250 mm in Revision B to 300 mm in Revision C.">
+        <defs>
+          <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--line)" stroke-width="1.2"/></pattern>
+        </defs>
+        <rect x="1" y="1" width="598" height="438" fill="var(--surface)" stroke="var(--fg)" stroke-width="1.6"/>
+        <rect x="12" y="12" width="576" height="416" fill="none" stroke="var(--fg-2)" stroke-width="0.8"/>
+        <!-- grid -->
+        <g>
+          <line class="gl" x1="96" y1="46" x2="96" y2="292"/><line class="gl" x1="224" y1="46" x2="224" y2="292"/><line class="gl" x1="352" y1="46" x2="352" y2="292"/><line class="gl" x1="480" y1="46" x2="480" y2="292"/>
+          <line class="gl" x1="58" y1="90" x2="522" y2="90"/><line class="gl" x1="58" y1="180" x2="522" y2="180"/><line class="gl" x1="58" y1="270" x2="522" y2="270"/>
+          <g fill="var(--surface)" stroke="var(--fg-2)" stroke-width="1">
+            <circle cx="96" cy="33" r="11"/><circle cx="224" cy="33" r="11"/><circle cx="352" cy="33" r="11"/><circle cx="480" cy="33" r="11"/>
+            <circle cx="46" cy="90" r="11"/><circle cx="46" cy="180" r="11"/><circle cx="46" cy="270" r="11"/>
+          </g>
+          <g class="m" font-size="11" text-anchor="middle">
+            <text x="96" y="37">6</text><text x="224" y="37">7</text><text x="352" y="37">8</text><text x="480" y="37">9</text>
+            <text x="46" y="94">A</text><text x="46" y="184">B</text><text x="46" y="274">C</text>
+          </g>
+        </g>
+        <!-- slab, beam, columns -->
+        <rect x="96" y="90" width="384" height="180" fill="url(#hatch)" stroke="var(--fg-2)" stroke-width="1.2"/>
+        <line x1="224" y1="90" x2="224" y2="270" stroke="var(--fg-2)" stroke-width="7"/>
+        <text x="234" y="112" font-size="10.5" class="mu">Transfer beam, 1200 deep</text>
+        <g fill="var(--fg)">
+          <rect x="90" y="84" width="12" height="12"/><rect x="218" y="84" width="12" height="12"/><rect x="346" y="84" width="12" height="12"/><rect x="474" y="84" width="12" height="12"/>
+          <rect x="90" y="174" width="12" height="12"/><rect x="218" y="174" width="12" height="12"/><rect x="346" y="174" width="12" height="12"/><rect x="474" y="174" width="12" height="12"/>
+          <rect x="90" y="264" width="12" height="12"/><rect x="218" y="264" width="12" height="12"/><rect x="346" y="264" width="12" height="12"/><rect x="474" y="264" width="12" height="12"/>
+        </g>
+        <!-- dimension -->
+        <g stroke="var(--fg-2)" stroke-width="0.9"><line x1="96" y1="306" x2="480" y2="306"/><line x1="96" y1="300" x2="96" y2="312"/><line x1="480" y1="300" x2="480" y2="312"/></g>
+        <text class="m mu" x="288" y="324" font-size="11" text-anchor="middle">19.2 m between gridlines 6 and 9</text>
+        <!-- revision cloud -->
+        <path id="heroCloud" class="cloud" d=""/>
+        <text x="300" y="213" font-size="9.5" text-anchor="middle" class="mu">Post-tensioned slab</text>
+        <text class="m mu" x="300" y="230" font-size="11" text-anchor="middle" text-decoration="line-through">250 mm</text>
+        <text class="m" x="300" y="251" font-size="17" font-weight="600" text-anchor="middle">300 mm</text>
+        <polygon points="362,170 376,197 348,197" fill="var(--surface)" stroke="var(--mark)" stroke-width="1.6"/>
+        <text class="m" x="362" y="193" font-size="10" font-weight="600" text-anchor="middle" style="fill: var(--mark)">C</text>
+        <!-- title block -->
+        <g stroke="var(--fg)" stroke-width="1.2" fill="none">
+          <line x1="12" y1="344" x2="588" y2="344"/><line x1="192" y1="344" x2="192" y2="428"/><line x1="402" y1="344" x2="402" y2="428"/>
+          <line x1="402" y1="372" x2="588" y2="372" stroke-width="0.8"/><line x1="402" y1="400" x2="588" y2="400" stroke-width="0.8"/>
+        </g>
+        <text x="24" y="361" font-size="9.5" class="mu">Project</text>
+        <text x="24" y="383" font-size="16" font-weight="650">Al-Wahah Tower</text>
+        <text x="24" y="401" font-size="10.5" class="mu">Jeddah, G+24 mixed use</text>
+        <text x="204" y="361" font-size="9.5" class="mu">Title</text>
+        <text x="204" y="380" font-size="13" font-weight="600">Level 3 Podium Slab,</text>
+        <text x="204" y="397" font-size="13" font-weight="600">Reinforcement Layout</text>
+        <text x="204" y="416" font-size="10.5" class="mu">Drawing, structural</text>
+        <text x="414" y="355" font-size="9" class="mu">Document no.</text>
+        <text class="m" x="414" y="368" font-size="12" font-weight="600">AWT-STR-DWG-0101</text>
+        <polygon points="426,377 438,397 414,397" fill="var(--mark)"/><text class="m" x="426" y="394" font-size="9" font-weight="600" text-anchor="middle" style="fill:#fff">C</text>
+        <text x="448" y="392" font-size="11">05 Aug 2026</text><text class="m" x="534" y="392" font-size="11" font-weight="600" style="fill: var(--ifc)">IFC</text>
+        <polygon points="426,405 438,425 414,425" fill="var(--sup-bg)"/><text class="m mu" x="426" y="422" font-size="9" font-weight="600" text-anchor="middle">B</text>
+        <text class="mu" x="448" y="420" font-size="11" text-decoration="line-through">12 May 2026</text><text class="mu" x="518" y="420" font-size="10">Superseded</text>
+      </svg>
+      <div class="hq">
+        <div class="hq-h">Ask this sheet's project</div>
+        <div class="chips" id="heroChips"></div>
+        <div class="hq-ans" id="heroAns" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  
+
+  <section class="stats c" aria-label="At a glance">
+    <div><b>12</b><span>modules, all working in the demo</span></div>
+    <div><b>4</b><span>checks before any answer is shown</span></div>
+    <div><b>2</b><span>role views: controller and subcontractor</span></div>
+    <div><b>0</b><span>files leave your browser</span></div>
+  </section>
+
+  <section id="try" class="sec c">
+    <span class="eyebrow">Start here</span><h2>Try it in a minute</h2>
+    <p class="intro">Pick one. Each opens the demo already set up on a sample project, so there is nothing to configure.</p>
+    <div class="mods four">
+      <div class="mod"><span class="mod-i" id="ti-ask"></span><h3>Ask a question</h3><p>See an answer with its source, and the superseded drawing it refused to use.</p><button class="btn btn-s" type="button" data-act="tryIt" data-k="ask">Ask about Level 3</button></div>
+      <div class="mod"><span class="mod-i" id="ti-diff"></span><h3>Compare revisions</h3><p>Open a drawing and read exactly what changed between Rev B and Rev C.</p><button class="btn btn-s" type="button" data-act="tryIt" data-k="diff">Open the drawing</button></div>
+      <div class="mod"><span class="mod-i" id="ti-upload"></span><h3>Upload a file</h3><p>Upload a sample method statement, then ask a question about what is inside it.</p><button class="btn btn-s" type="button" data-act="tryIt" data-k="upload">Upload a sample</button></div>
+      <div class="mod"><span class="mod-i" id="ti-role"></span><h3>Switch roles</h3><p>See the project as an MEP subcontractor, who cannot open structural drawings.</p><button class="btn btn-s" type="button" data-act="tryIt" data-k="role">View as subcontractor</button></div>
+    </div>
+  </section>
+
+  <section id="why" class="sec alt c">
+    <span class="eyebrow">Why Docket</span><h2>Document control goes wrong in three places</h2>
+    <p class="intro">Docket is built around three failures that cost project teams time and, later, arguments.</p>
+    <div class="mods three">
+      <div class="mod"><span class="mod-i" id="wi-1"></span><h3>Nobody is sure which revision is current</h3><p>Every document number has one current revision. Issuing a new one supersedes the old one automatically, and the old one stays in the record, clearly marked.</p></div>
+      <div class="mod"><span class="mod-i" id="wi-2"></span><h3>Nobody can prove who received what</h3><p>Transmittals record the recipient, the purpose and a reply date. The review code, from A to D, is recorded against the reply, with who gave it and when.</p></div>
+      <div class="mod"><span class="mod-i" id="wi-3"></span><h3>Answers live in people's heads</h3><p>Ask searches the register, mail, RFIs and transmittals together, and shows the document, revision and page it read.</p></div>
+    </div>
+  </section>
+
+  <section id="flow" class="sec c">
+    <span class="eyebrow">How it works</span><h2>From upload to answer in four steps</h2>
+    <p class="intro">The same four steps apply to a drawing, a specification, a letter or a method statement.</p>
+    <div class="flow">
+      <div><span class="rv lg">1</span><h3>Upload</h3><p>Drop in a file. Docket reads the text and files it under a document number, with a discipline, type and status.</p></div>
+      <div><span class="rv lg">2</span><h3>Control</h3><p>A new revision supersedes the old one. Status codes show whether a document is for construction, approval or information.</p></div>
+      <div><span class="rv lg">3</span><h3>Issue</h3><p>Send documents by transmittal or mail. Replies and review codes are recorded, and overdue items surface on the dashboard.</p></div>
+      <div><span class="rv lg">4</span><h3>Ask and audit</h3><p>Ask the project a question. Every view, download and reply lands in the audit trail.</p></div>
+    </div>
+  </section>
+
+  <section id="how" class="sec alt c">
+    <span class="eyebrow">Safe answers</span><h2>Four checks run before any answer is shown</h2>
+    <p class="intro">A question is narrowed by project, role and revision before anything is ranked. These are the real passage counts for the sample project, and they change with the role you choose.</p>
+    <div class="fn">
+      <div class="fn-h"><b>Passages left after each check</b>
+        <div class="seg" role="group" aria-label="View as"><button type="button" data-act="funnelRole" data-v="dc" aria-pressed="true">Document Controller</button><button type="button" data-act="funnelRole" data-v="sub" aria-pressed="false">MEP Subcontractor</button></div>
+      </div>
+      <div id="funnelBody"></div>
+      <div class="fn-f">Ranking happens last, over only what remains. Every statement in an answer links to its document, revision and page.</div>
+    </div>
+  </section>
+
+  <section id="changes" class="sec c">
+    <div class="split">
+      <div>
+        <h2>See exactly what changed between revisions</h2>
+        <p class="intro">Upload a new revision and Docket supersedes the old one, then shows the difference word by word.</p>
+        <ul class="pts">
+          <li>Old revisions stay in the register, marked superseded.</li>
+          <li>Answers never use them, and flag when they would have matched.</li>
+          <li>The audit trail records who superseded what, and when.</li>
+        </ul>
+        <div class="btns" style="margin-top: 26px"><button class="btn" type="button" data-act="tryIt" data-k="diff">Open this document</button></div>
+      </div>
+      <div class="dcard" id="diffShow"></div>
+    </div>
+  </section>
+
+  <section id="modules" class="sec c">
+    <span class="eyebrow">Modules</span><h2>Everything a document controller touches in a day</h2>
+    <p class="intro">All twelve modules work in the demo. Open any of them with the sample projects.</p>
+    <div class="mods four" id="modGrid"></div>
+    <h3 class="subh">Everyday helpers</h3>
+    <div class="mods four" style="margin-top: 14px">
+      <div class="mod"><h3>Find anything <span class="tagp on">In demo</span></h3><p>Press Ctrl+K and search every document, letter, RFI and transmittal at once.</p></div>
+      <div class="mod"><h3>Alerts <span class="tagp on">In demo</span></h3><p>See what is overdue and what falls due this week, in one list.</p></div>
+      <div class="mod"><h3>Comments <span class="tagp on">In demo</span></h3><p>Leave review notes that stay with the document, recorded in the audit trail.</p></div>
+      <div class="mod"><h3>Download selected <span class="tagp on">In demo</span></h3><p>Tick several documents and take them as one zip file. Ask answers copy or export as text.</p></div>
+    </div>
+    <h3 class="subh">On the roadmap</h3>
+    <div class="mods three" style="margin-top: 14px">
+      <div class="mod plan"><h3>Drawings and models <span class="tagp">Planned</span></h3><p>A drawing viewer with revision overlay, and model coordination.</p></div>
+      <div class="mod plan"><h3>Field app <span class="tagp">Planned</span></h3><p>Mobile access for site teams: inspections, punch lists and daily reports.</p></div>
+      <div class="mod plan"><h3>Connectors <span class="tagp">Planned</span></h3><p>Sync with SharePoint, Drive and scheduling tools, and OCR for scanned PDFs.</p></div>
+    </div>
+  </section>
+
+  <section id="aconex" class="sec alt c">
+    <span class="eyebrow">Coming from Aconex?</span>
+    <h2>What platforms like Aconex cover, and where Docket stands</h2>
+    <p class="intro">Document-control platforms are usually judged on the same list of capabilities. This is Docket's honest position against that list.</p>
+    <div class="panel rt" style="margin-top: 30px"><div class="tablewrap"><table>
+      <thead><tr><th>Typical capability</th><th>In Docket demo</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td>Project mail with reference numbers and reply dates</td><td><span class="pill ok">Yes</span></td><td>Mail, with Inbox and Sent</td></tr>
+        <tr><td>Document register with revisions and status</td><td><span class="pill ok">Yes</span></td><td>Documents</td></tr>
+        <tr><td>Transmittals with review codes</td><td><span class="pill ok">Yes</span></td><td>Transmittals</td></tr>
+        <tr><td>Review and approval workflows</td><td><span class="pill ok">Yes</span></td><td>Workflows</td></tr>
+        <tr><td>Forms: RFI, NCR, site instruction, inspection</td><td><span class="pill ok">Yes</span></td><td>RFIs and Forms</td></tr>
+        <tr><td>Tendering and bid comparison</td><td><span class="pill ok">Basic</span></td><td>Tenders</td></tr>
+        <tr><td>Project directory and roles</td><td><span class="pill ok">Yes</span></td><td>Directory</td></tr>
+        <tr><td>Reports and exports</td><td><span class="pill ok">Yes</span></td><td>Reports</td></tr>
+        <tr><td>Audit trail</td><td><span class="pill ok">Yes</span></td><td>Audit trail</td></tr>
+        <tr><td>Search across everything, with answers</td><td><span class="pill ok">Yes</span></td><td>Ask and Find</td></tr>
+        <tr><td>Drawing viewer with markup and overlay</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
+        <tr><td>Mobile field app and offline use</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
+        <tr><td>Asset handover and as-built packs</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
+        <tr><td>Model coordination, single sign-on, integrations</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
+      </tbody></table></div></div>
+  </section>
+
+  <section id="access" class="sec c">
+    <div class="split">
+      <div>
+        <h2>Everyone sees what they should, and every action is recorded</h2>
+        <p class="intro">A subcontractor's register, mail, dashboard numbers and search results all narrow to their own disciplines. The audit trail stays with the document controller.</p>
+        <ul class="pts">
+          <li>Every view, upload, download, issue, reply and question is logged with the user and time.</li>
+          <li>Superseded revisions are kept, never deleted.</li>
+          <li>The register and the audit trail export to CSV.</li>
+        </ul>
+        <div class="btns" style="margin-top: 26px"><button class="btn" type="button" data-act="tryIt" data-k="role">See it as a subcontractor</button></div>
+      </div>
+      <div class="panel rt">
+        <div class="tablewrap"><table>
+          <thead><tr><th>In the demo</th><th>Document Controller</th><th>MEP Subcontractor</th></tr></thead>
+          <tbody>
+            <tr><td>Disciplines they can open</td><td>All seven</td><td>Mechanical, electrical, health and safety</td></tr>
+            <tr><td>Upload documents</td><td>Yes</td><td>Own disciplines only</td></tr>
+            <tr><td>Issue transmittals and send mail</td><td>Yes</td><td>Yes, from own disciplines</td></tr>
+            <tr><td>Ask searches</td><td>Every discipline</td><td>Own disciplines only</td></tr>
+            <tr><td>See the audit trail</td><td>Yes</td><td>No</td></tr>
+          </tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gulf" class="sec c">
+    <span class="eyebrow">For the Gulf</span><h2>Built for how projects run in the Gulf</h2>
+    <div class="mods three">
+      <div class="mod"><h3>Role-based access <span class="tagp on">In demo</span></h3><p>Subcontractors see only their disciplines. Switch roles in the demo to watch the register, mail, dashboard and search change.</p><button class="btn-g btn-s" type="button" data-act="tryIt" data-k="role">Try it as a subcontractor</button></div>
+      <div class="mod plan"><h3>Arabic and English search <span class="tagp">Planned</span></h3><p>Search drawings and letters in either language, including scanned Arabic text.</p></div>
+      <div class="mod plan"><h3>Saudi data residency <span class="tagp">Planned</span></h3><p>Hosting inside the Kingdom, with controls aligned to local data protection rules.</p></div>
+    </div>
+  </section>
+
+  <section id="real" class="sec alt c">
+    <span class="eyebrow">Honest limits</span><h2>What is real in this demo, and what comes next</h2>
+    <p class="intro">The demo is honest about its limits, so you know what you are judging.</p>
+    <div class="mods two">
+      <div class="mod"><h3>Works in this demo <span class="tagp on">Now</span></h3>
+        <ul><li>Register with revisions, status codes and automatic superseding</li><li>Upload, download and word-by-word revision comparison</li><li>Transmittals with review codes, mail and RFIs</li><li>Audit trail, CSV export and role limits</li><li>Ask with citations, searching your uploaded .txt, .md, .csv, .json and .docx files</li></ul></div>
+      <div class="mod plan"><h3>In a production build <span class="tagp">Next</span></h3>
+        <ul><li>Text from PDFs and drawings, including scanned Arabic, with OCR</li><li>Search by meaning (pgvector) instead of keyword matching</li><li>Real accounts, single sign-on and per-project permissions</li><li>Server storage with hosting inside Saudi Arabia</li><li>Notifications when replies fall due</li></ul></div>
+    </div>
+  </section>
+
+  <section id="faq" class="sec c">
+    <span class="eyebrow">FAQ</span><h2>Questions people ask first</h2>
+    <div class="faq">
+      <details><summary>Is this a finished product?</summary><p>No. It is a concept demo with fictional projects, built to show how the product would work. Nothing in it is a real project record.</p></details>
+      <details><summary>Does my uploaded file leave my browser?</summary><p>No. In this demo the file is read inside your browser and held in memory until you refresh the page. Nothing is sent to a server.</p></details>
+      <details><summary>Which files can Ask read?</summary><p>.txt, .md, .csv, .json and .docx files. PDFs and drawings can be uploaded and downloaded, but their text is not read yet. Add a description when you upload to make them searchable.</p></details>
+      <details><summary>How does Ask avoid using an old drawing?</summary><p>Superseded revisions are filtered out before anything is ranked. If an old revision would have matched, the answer says so and shows what it said.</p></details>
+      <details><summary>Can it replace a platform like Aconex?</summary><p>It covers the daily core of document control: the register, transmittals, RFIs, mail and the audit trail. Large programmes may also need drawing viewers and model coordination, which are on the roadmap and not in the demo.</p></details>
+      <details><summary>What changes when I switch role?</summary><p>The register, mail, dashboard numbers, audit trail and Ask results all narrow to what that role can open.</p></details>
+    </div>
+  </section>
+
+  <section class="c">
+    <div class="band">
+      <div><h2>Try it on a sample project</h2><p>Two fictional projects, ready for you to upload to, search, issue from and reply in.</p></div>
+      <div class="btns"><button class="btn" type="button" data-act="openDemo" data-tab="dash">Try the demo</button><button class="btn-g" type="button" data-act="tryIt" data-k="ask">Go straight to Ask</button></div>
+    </div>
+  </section>
+  <footer class="sfoot"><div class="c">
+    <div><span class="wordmark"><span class="rv" aria-hidden="true">R</span>Docket</span><p>Document control with answers you can trace. A concept demo for construction projects in Saudi Arabia and the GCC.</p></div>
+    <div><h4>Product</h4><button class="link" type="button" data-act="scroll" data-target="why">Why Docket</button><button class="link" type="button" data-act="scroll" data-target="flow">How it works</button><button class="link" type="button" data-act="scroll" data-target="modules">Modules</button></div>
+    <div><h4>Demo</h4><button class="link" type="button" data-act="openDemo" data-tab="dash">Dashboard</button><button class="link" type="button" data-act="openDemo" data-tab="docs">Documents</button><button class="link" type="button" data-act="tryIt" data-k="ask">Ask</button></div>
+    <div><h4>More</h4><button class="link" type="button" data-act="scroll" data-target="aconex">Compared with Aconex</button><button class="link" type="button" data-act="scroll" data-target="access">Access and audit</button><button class="link" type="button" data-act="scroll" data-target="real">What is real</button><button class="link" type="button" data-act="scroll" data-target="faq">FAQ</button></div>
+    <div class="legal">Concept demo. Projects, people and documents are fictional. Changes you make last until you refresh the page.</div>
+  </div></footer>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+  <header class="appbar">
+    <div class="in">
+      <button class="wordmark" type="button" data-act="site" aria-label="Back to the product page"><span class="rv" aria-hidden="true">R</span>Docket</button>
+      <label class="projsel"><span class="pcode mono" id="pcode"></span><select id="proj" aria-label="Project"></select></label>
+      <form id="gAsk" class="gask" autocomplete="off" role="search"><svg class="ic" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/></svg><input type="text" id="gq" placeholder="Ask this project a question" aria-label="Ask this project a question"></form>
+      <button type="button" class="btn-g btn-s" data-act="quick" title="Find anything (Ctrl+K)">Find <kbd>Ctrl K</kbd></button>
+      <button type="button" class="btn-g btn-s" id="bell" data-act="bell" aria-label="Alerts">Alerts <span class="badge bad" id="bellN" hidden></span></button>
+      <div class="sp"></div>
+      <label class="viewlbl" for="role">Viewing as</label>
+      <select id="role" aria-label="Signed in as"></select>
+      <div class="who" id="who"></div>
+      <div class="avatar" id="avatar" aria-hidden="true"></div>
+    </div>
+  </header>
+  <div class="shell">
+    <nav class="nav" id="nav" aria-label="Modules"></nav>
+    <main class="main" id="main"></main>
+  </div>
+</div>
+
+<div class="overlay" id="ov" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ovT">
+    <div class="sheet-h">
+      <div><span class="mono muted" id="ovS"></span><h3 id="ovT"></h3></div>
+      <button class="btn-g btn-s" id="ovX" type="button" data-act="close">Close</button>
+    </div>
+    <div class="sheet-b" id="ovB"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div id="tip" role="tooltip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
