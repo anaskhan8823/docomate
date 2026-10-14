@@ -1,13 +1,10 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Docket</title>
-<meta name="description" content="Docket: document control for construction projects, with answers you can trace. Concept demo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* Concept: an engineering drawing sheet. Cool drafting-paper greys, deep ink navy, and one markup colour (the magenta of a revision cloud) that appears only where something changed or is current. Archivo carries display and UI at different widths. Plex Mono is reserved for document numbers and revisions. */
 :root {
@@ -507,9 +504,42 @@ td.mono { white-space: nowrap; }
 .ppl { list-style: none; margin: 0; padding: 4px 18px 10px; display: flex; flex-direction: column; gap: 10px; }
 .ppl li { display: flex; gap: 10px; align-items: center; }
 .avatar.sm { width: 34px; height: 34px; font-size: 12px; flex: none; }
+
+.vwbar { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; }
+.vwbar .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; }
+.vw { border: 1px solid var(--line); border-radius: 10px; overflow: auto; max-height: 52vh; background: #fff; touch-action: pan-x pan-y; }
+.vw svg { display: block; width: 100%; height: auto; cursor: crosshair; user-select: none; }
+.mkl { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mkl li { display: flex; gap: 8px; align-items: center; }
+.mkl input { flex: 1; }
+.mkn { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--mark); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.vchip { display: inline-flex; align-items: center; gap: 2px; padding: 0 4px 0 0; cursor: default; }
+.vchip button { background: none; border: 0; cursor: pointer; padding: 5px 4px 5px 10px; }
+.vchip .x { padding: 5px 6px; color: var(--muted); }
+
+/* v10 meetings calendar */
+.statrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.statrow>div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.statrow b{display:block;font-size:24px;line-height:1.1}.statrow span{font-size:12.5px;color:var(--fg-2)}
+.nextm{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;cursor:pointer;border-left:4px solid var(--accent)}
+.nextm h3{margin:6px 0 4px}.nextm:hover{border-color:var(--accent)}.nm-r b{font-size:20px;color:var(--accent);white-space:nowrap}
+.mt-tools{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin:4px 0 12px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.cal-h{padding:6px 8px;font-size:12px;font-weight:600;color:var(--fg-2);background:var(--sand);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cal-c{min-height:92px;padding:4px 5px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer;display:flex;flex-direction:column;gap:3px;background:var(--surface);overflow:hidden}
+.cal-c.off{background:var(--bg);cursor:default}.cal-c.wk,.cal-h.wk{background:var(--sand)}
+.cal-c:hover{outline:2px solid var(--accent);outline-offset:-2px}.cal-c.sel{outline:2px solid var(--brand-dark);outline-offset:-2px}
+.cal-n{font-size:12.5px;font-weight:600;color:var(--fg-2)}.cal-c.today .cal-n{background:var(--accent);color:#fff;border-radius:99px;padding:0 7px;align-self:flex-start}
+.cal-e{font-size:11.5px;line-height:1.25;background:var(--accent);color:#fff;border-radius:4px;padding:2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-e i{font-style:normal;font-family:'IBM Plex Mono',monospace;opacity:.85}.cal-e.held{background:var(--fg-2)}
+.cal-more{font-size:11px;color:var(--fg-2)}.cal-d{font-size:11px;color:var(--mark);font-weight:600}
+.mrow{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}.mrow:last-child{border-bottom:0}
+.mrow:hover h4{color:var(--accent)}.mrow-t{min-width:104px;display:flex;flex-direction:column;font-size:13px}.mrow-t span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--fg-2)}
+.mrow-m{flex:1;min-width:0}.mrow-m h4{margin:0 0 2px;font-size:14.5px}
+.agenda{margin:6px 0 0;padding-left:20px}.agenda li{margin:3px 0}.subh2{margin:14px 0 4px;font-size:13px}
+@media(max-width:720px){.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.cal-c{min-height:58px}.cal-e{font-size:0;padding:0;height:6px;border-radius:99px}.cal-e i{display:none}.cal-h{padding:6px 2px;text-align:center}.nextm{flex-direction:column;align-items:flex-start}.mrow{flex-wrap:wrap}}
 </style>
-</head>
-<body>
+
 <!-- ============ PRODUCT SITE ============ -->
 <div id="site">
   <header class="sitebar">
@@ -610,7 +640,7 @@ td.mono { white-space: nowrap; }
   
 
   <section class="stats c" aria-label="At a glance">
-    <div><b>12</b><span>modules, all working in the demo</span></div>
+    <div><b>13</b><span>modules, all working in the demo</span></div>
     <div><b>4</b><span>checks before any answer is shown</span></div>
     <div><b>2</b><span>role views: controller and subcontractor</span></div>
     <div><b>0</b><span>files leave your browser</span></div>
@@ -678,18 +708,21 @@ td.mono { white-space: nowrap; }
 
   <section id="modules" class="sec c">
     <span class="eyebrow">Modules</span><h2>Everything a document controller touches in a day</h2>
-    <p class="intro">All twelve modules work in the demo. Open any of them with the sample projects.</p>
+    <p class="intro">All thirteen modules work in the demo. Open any of them with the sample projects.</p>
     <div class="mods four" id="modGrid"></div>
     <h3 class="subh">Everyday helpers</h3>
     <div class="mods four" style="margin-top: 14px">
       <div class="mod"><h3>Find anything <span class="tagp on">In demo</span></h3><p>Press Ctrl+K and search every document, letter, RFI and transmittal at once.</p></div>
       <div class="mod"><h3>Alerts <span class="tagp on">In demo</span></h3><p>See what is overdue and what falls due this week, in one list.</p></div>
       <div class="mod"><h3>Comments <span class="tagp on">In demo</span></h3><p>Leave review notes that stay with the document, recorded in the audit trail.</p></div>
+      <div class="mod"><h3>Drawing viewer <span class="tagp on">In demo</span></h3><p>Open a drawing, zoom, overlay the previous revision and add pins or boxes with notes. Markups export to CSV.</p></div>
+      <div class="mod"><h3>Bulk upload <span class="tagp on">In demo</span></h3><p>Drop several files at once and set discipline, type and status for all of them together.</p></div>
+      <div class="mod"><h3>Saved views <span class="tagp on">In demo</span></h3><p>Save a register filter, such as open structural drawings, and reapply it in one click.</p></div>
       <div class="mod"><h3>Download selected <span class="tagp on">In demo</span></h3><p>Tick several documents and take them as one zip file. Ask answers copy or export as text.</p></div>
     </div>
     <h3 class="subh">On the roadmap</h3>
     <div class="mods three" style="margin-top: 14px">
-      <div class="mod plan"><h3>Drawings and models <span class="tagp">Planned</span></h3><p>A drawing viewer with revision overlay, and model coordination.</p></div>
+      <div class="mod plan"><h3>Real drawings and models <span class="tagp">Planned</span></h3><p>Render real PDF and DWG files in the viewer, and add model coordination.</p></div>
       <div class="mod plan"><h3>Field app <span class="tagp">Planned</span></h3><p>Mobile access for site teams: inspections, punch lists and daily reports.</p></div>
       <div class="mod plan"><h3>Connectors <span class="tagp">Planned</span></h3><p>Sync with SharePoint, Drive and scheduling tools, and OCR for scanned PDFs.</p></div>
     </div>
@@ -712,7 +745,8 @@ td.mono { white-space: nowrap; }
         <tr><td>Reports and exports</td><td><span class="pill ok">Yes</span></td><td>Reports</td></tr>
         <tr><td>Audit trail</td><td><span class="pill ok">Yes</span></td><td>Audit trail</td></tr>
         <tr><td>Search across everything, with answers</td><td><span class="pill ok">Yes</span></td><td>Ask and Find</td></tr>
-        <tr><td>Drawing viewer with markup and overlay</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
+        <tr><td>Drawing viewer with markup and overlay</td><td><span class="pill ok">Basic</span></td><td>Documents (sample drawing only)</td></tr>
+        <tr><td>Meeting calendar, invitees, minutes and actions</td><td><span class="pill ok">Yes</span></td><td>Meetings</td></tr>
         <tr><td>Mobile field app and offline use</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
         <tr><td>Asset handover and as-built packs</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
         <tr><td>Model coordination, single sign-on, integrations</td><td><span class="pill warn">Not yet</span></td><td>Roadmap</td></tr>
@@ -826,7 +860,6 @@ td.mono { white-space: nowrap; }
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div id="tip" role="tooltip" hidden></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 
 //#region seed
@@ -963,7 +996,6 @@ function qTerms(q) {
     seen.add(t);
     out.push([t].concat((SYN[t] || []).map(stem)));
   });
-  (P.forms || []).forEach(f => out.push({ kind: 'form', key: f.no, ref: f.no, disc: f.disc, current: true, p: 1, text: f.detail + (f.response ? ' Reply: ' + f.response : ''), title: f.title + ' ' + f.type, label: f.no + ' · form' }));
   return out;
 }
 function canSee(role, disc) { const dd = ROLES[role].discs; return !dd || (disc && dd.includes(disc)); }
@@ -991,6 +1023,8 @@ function buildChunks(P) {
   P.mail.forEach(m => out.push({ kind: 'mail', key: m.ref, ref: m.ref, disc: m.disc, current: true, p: 1, text: m.body, title: m.subject + ' ' + m.type, label: m.ref + ' · mail' }));
   P.rfis.forEach(r => out.push({ kind: 'rfi', key: r.no, ref: r.no, disc: r.disc, current: true, p: 1, text: r.question + (r.answer ? ' Answer: ' + r.answer : ''), title: r.title, label: r.no + ' · RFI' }));
   P.trans.forEach(t => out.push({ kind: 'trans', key: t.no, ref: t.no, disc: t.disc, current: true, p: 1, text: t.message + (t.response ? ' ' + t.response.comment : ''), title: t.subject + ' ' + t.purpose, label: t.no + ' · transmittal' }));
+  (P.meetings || []).forEach(m => out.push({ kind: 'meet', key: m.no, ref: m.no, disc: m.disc, current: true, p: 1, text: (m.minutes || '') + ' Agenda: ' + (m.agenda || []).join('. ') + ' Meeting on ' + m.date + ' at ' + (m.time || '') + ' in ' + (m.where || '') + ' with ' + m.orgs.join(', ') + '. Actions: ' + m.actions.map(a => a.text + ' (' + a.owner + ', due ' + a.due + ')').join('; '), title: m.title, label: m.no + ' \u00b7 meeting' }));
+  (P.forms || []).forEach(f => out.push({ kind: 'form', key: f.no, ref: f.no, disc: f.disc, current: true, p: 1, text: f.detail + (f.response ? ' Reply: ' + f.response : ''), title: f.title + ' ' + f.type, label: f.no + ' · form' }));
   return out;
 }
 function pickSentences(text, terms) {
@@ -1111,9 +1145,9 @@ function pc(s) {
   if (s === 'ISSUED') return 'iss';
   if (/^Responded · D/.test(s) || s === 'Overdue') return 'bad';
   if (/^Responded · C/.test(s) || /^(Open|Awaiting)/.test(s)) return 'warn';
-  if (/^(Answered|Replied|Responded|Closed|Approved|Awarded|Done)/.test(s)) return 'ok';
-  if (/^(Rejected|Skipped)/.test(s)) return 'bad';
-  if (/^(In review|Current|Waiting)/.test(s)) return 'warn';
+  if (/^(Answered|Replied|Responded|Closed|Approved|Awarded|Done|Held)/.test(s)) return 'ok';
+  if (/^(Rejected|Skipped|Cancelled)/.test(s)) return 'bad';
+  if (/^(In review|Current|Waiting|Scheduled|Today)/.test(s)) return 'warn';
   return 'info';
 }
 const PILLTXT = { IFC: 'For construction', IFA: 'For approval', ISSUED: 'For information', SUP: 'Superseded' };
@@ -1181,9 +1215,9 @@ const ICON = {
   info: '<circle cx="10" cy="10" r="7.5"/><path d="M10 9v4.5M10 6.5h.01"/>'
 };
 const ico = (n, s) => '<svg class="ic" width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[n] + '</svg>';
-const TABS = [['dash', 'Dashboard'], ['docs', 'Documents'], ['mail', 'Mail'], ['trans', 'Transmittals'], ['rfis', 'RFIs'], ['ask', 'Ask'], ['forms', 'Forms'], ['work', 'Workflows'], ['tenders', 'Tenders'], ['reports', 'Reports'], ['dir', 'Directory'], ['audit', 'Audit trail']];
+const TABS = [['dash', 'Dashboard'], ['docs', 'Documents'], ['mail', 'Mail'], ['trans', 'Transmittals'], ['rfis', 'RFIs'], ['ask', 'Ask'], ['forms', 'Forms'], ['work', 'Workflows'], ['tenders', 'Tenders'], ['meet', 'Meetings'], ['reports', 'Reports'], ['dir', 'Directory'], ['audit', 'Audit trail']];
 const NAVSUB = { dash: 'Today at a glance', docs: 'Drawings and files', mail: 'Letters and notices', trans: 'Send documents', rfis: 'Questions to designers', ask: 'Ask in plain words', audit: 'Who did what' };
-const NAVGROUPS = [['dash'], ['docs', 'mail', 'trans', 'rfis', 'forms'], ['work', 'tenders'], ['ask', 'reports', 'dir', 'audit']];
+const NAVGROUPS = [['dash'], ['docs', 'mail', 'trans', 'rfis', 'forms'], ['work', 'tenders', 'meet'], ['ask', 'reports', 'dir', 'audit']];
 function setView(v) { S.view = v; $('site').hidden = v !== 'site'; $('app').hidden = v !== 'app'; window.scrollTo(0, 0); if (v === 'app') renderApp(); }
 function renderApp() { renderBar(); renderNav(); renderMain(); }
 function renderBar() {
@@ -1205,7 +1239,7 @@ function renderNav() {
     '<p class="navnote">Sample data. Nothing here is a real project.</p>';
 }
 function renderMain() {
-  const m = { dash: viewDash, docs: viewDocs, mail: viewMail, trans: viewTrans, rfis: viewRfis, forms: viewForms, work: viewWork, tenders: viewTenders, reports: viewReports, dir: viewDir, ask: viewAsk, audit: viewAudit }[S.tab];
+  const m = { dash: viewDash, docs: viewDocs, mail: viewMail, trans: viewTrans, rfis: viewRfis, forms: viewForms, work: viewWork, tenders: viewTenders, meet: viewMeet, reports: viewReports, dir: viewDir, ask: viewAsk, audit: viewAudit }[S.tab];
   $('main').innerHTML = m();
   if (S.tab === 'docs') fillDocs();
   if (S.tab === 'ask') renderThread(false);
@@ -1842,6 +1876,7 @@ const MODS = [
   ['dash', 'Dashboard', 'What needs action today, the shape of the register and recent activity.', ['Overdue replies and open reviews', 'Items filed per week, by type']],
   ['docs', 'Documents', 'A controlled register with revisions, status codes and automatic superseding.', ['Upload by button or drag and drop', 'Download files and export the register', 'Word-by-word comparison between revisions']],
   ['mail', 'Mail', 'Formal correspondence with reference numbers, reply dates and attachments from the register.', ['Letters, notices and instructions', 'Replies keep the thread together']],
+  ['meet', 'Meetings', 'A month calendar of meetings with who is invited, the time and place, agenda and minutes.', ['Invitees, replies and clash checks', 'Add to your calendar as .ics', 'Actions feed alerts, and Ask reads the minutes']],
   ['trans', 'Transmittals', 'Issue a set of documents to named recipients with a purpose and a due date.', ['Review codes A to D on reply', 'Download a printable transmittal sheet']],
   ['rfis', 'RFIs', 'Structured requests with an owner, a due date and a recorded answer.', ['Overdue items flagged on the dashboard', 'Answers searchable in Ask']],
   ['ask', 'Ask', 'Ask the project a question. Answers use current revisions only and cite their source.', ['Searches documents, mail, RFIs and transmittals', 'Respects your role and project']],
@@ -2317,6 +2352,405 @@ Object.assign(ACT, {
   exportReport(a) { const r = reportData().find(x => x[0] === a.k); if (r) csvDownload(a.k, r[3]); },
   newOrg() { formOrg(); }
 });
+
+/* ---------- v9: drawing viewer, meetings, bulk upload, saved views ---------- */
+Object.assign(ICON, { meet: '<rect x="3.5" y="4.5" width="13" height="12" rx="1.6"/><path d="M3.5 8.5h13M7 3v3M13 3v3M7 11.5h2M11 11.5h2M7 14h2"/>' });
+D.awt.meetings = [
+  { no: 'AWT-MTG-0023', title: 'Progress meeting No. 23', date: '2026-10-01', disc: 'GEN', orgs: ['Employer', 'Consultant', 'Main Contractor'], minutes: 'Level 3 slab reinforcement is complete and the pour is planned for 15 October. The facade mock-up approval is still open. The consultant asked the contractor to submit a hot-weather concreting method statement before the pour. The MEP coordination drawing for Level 3 must be reissued after the fire damper locations are confirmed.', actions: [
+    { text: 'Submit the hot-weather concreting method statement', owner: 'Main Contractor', due: '2026-10-10', done: false },
+    { text: 'Confirm the facade mock-up approval date', owner: 'Consultant', due: '2026-10-20', done: false },
+    { text: 'Reissue the Level 3 MEP coordination drawing', owner: 'MEP Subcontractor', due: '2026-10-15', done: false }] },
+  { no: 'AWT-MTG-0022', title: 'Progress meeting No. 22', date: '2026-09-17', disc: 'GEN', orgs: ['Employer', 'Consultant', 'Main Contractor'], minutes: 'The tower crane relocation was agreed with a programme impact of 6 days. The Level 2 column C7 repair method is under discussion. Site safety audit found no major items.', actions: [
+    { text: 'Issue the revised crane base layout', owner: 'Main Contractor', due: '2026-09-24', done: true }] }
+];
+D.wap.meetings = [{ no: 'WAP-MTG-0008', title: 'Progress meeting No. 8', date: '2026-09-30', disc: 'GEN', orgs: ['Employer', 'Consultant', 'Main Contractor'], minutes: 'Excavation for the wet well has reached formation level. Dewatering by wellpoints continues. Blinding thickness is below specification and an NCR has been raised.', actions: [{ text: 'Correct the blinding thickness and reinspect', owner: 'Main Contractor', due: '2026-10-09', done: false }] }];
+S.views = {}; S.vw = null;
+
+/* ================= Drawing viewer ================= */
+const gx = [100, 230, 360, 490], gy = [90, 180, 270];
+function dwgThickness(doc) { const m = /(\d+)\s*mm/.exec((doc.chunks[0] || [0, ''])[1]); return m ? m[1] + ' mm' : ''; }
+function dwgElems(doc, ghost) {
+  const col = ghost ? 'var(--mark)' : 'var(--fg)', sub = ghost ? 'var(--mark)' : 'var(--fg-2)', dash = ghost ? ' stroke-dasharray="6 4"' : '';
+  let s = '<g fill="none" stroke="' + sub + '" stroke-width="1.2"' + dash + '>';
+  gx.forEach(x => { s += '<line x1="' + x + '" y1="52" x2="' + x + '" y2="300" stroke-dasharray="14 3 2 3" stroke-width="0.8"/>'; });
+  gy.forEach(y => { s += '<line x1="62" y1="' + y + '" x2="540" y2="' + y + '" stroke-dasharray="14 3 2 3" stroke-width="0.8"/>'; });
+  if (doc.disc === 'MEP' || doc.disc === 'ELE') {
+    s += '<path d="M100 180H360V90H490" stroke="' + (ghost ? col : 'var(--s1)') + '" stroke-width="3"/><circle cx="360" cy="180" r="9" stroke="' + col + '"/><path d="M230 90V270" stroke="' + (ghost ? col : 'var(--s2)') + '" stroke-width="2"/>';
+  } else if (doc.disc === 'ARC') {
+    s += '<rect x="100" y="90" width="130" height="90"/><rect x="230" y="90" width="130" height="90"/><rect x="360" y="90" width="130" height="180"/><rect x="100" y="180" width="260" height="90"/><path d="M230 150a24 24 0 0 1 24 24"/>';
+  } else {
+    s += '<rect x="100" y="90" width="390" height="180" fill="' + (ghost ? 'none' : 'var(--surface-2)') + '"/><path d="M230 90V270" stroke="' + col + '" stroke-width="5"/>';
+  }
+  s += '</g><g fill="' + col + '">' + gx.concat(gx).slice(0, 4).map(x => gy.map(y => '<rect x="' + (x - 4) + '" y="' + (y - 4) + '" width="8" height="8"/>').join('')).join('') + '</g>';
+  const t = dwgThickness(doc);
+  if (doc.disc === 'STR' && t) s += '<text x="296" y="' + (ghost ? 236 : 228) + '" font-size="15" font-weight="700" text-anchor="middle" fill="' + col + '"' + (ghost ? ' text-decoration="line-through"' : '') + '>Slab ' + t + '</text>';
+  else if (!ghost) s += '<text x="296" y="232" font-size="13" text-anchor="middle" fill="var(--muted)">' + esc(doc.type) + ' ' + esc(doc.disc) + '</text>';
+  return s;
+}
+function drawingSvg(doc, prev, marks, draft) {
+  const p = P();
+  let s = '<svg id="dwg" viewBox="0 0 600 440" xmlns="http://www.w3.org/2000/svg" style="font-family: var(--font-ui)">' +
+    '<rect x="1" y="1" width="598" height="438" fill="var(--surface)" stroke="var(--fg)" stroke-width="1.6"/><rect x="12" y="12" width="576" height="416" fill="none" stroke="var(--fg-2)" stroke-width="0.8"/>';
+  if (prev) s += dwgElems(prev, true);
+  s += dwgElems(doc, false);
+  if (prev && dwgThickness(prev) !== dwgThickness(doc)) s += '<path d="' + cloudPath(236, 202, 120, 42, 12) + '" fill="none" stroke="var(--mark)" stroke-width="1.8"/>';
+  s += '<g font-size="10" fill="var(--fg)"><rect x="12" y="340" width="576" height="88" fill="var(--surface)" stroke="var(--fg-2)"/>' +
+    '<text x="24" y="360" fill="var(--muted)" font-size="9">Project</text><text x="24" y="378" font-weight="700" font-size="13">' + esc(p.name) + '</text>' +
+    '<text x="200" y="360" fill="var(--muted)" font-size="9">Title</text><text x="200" y="378" font-weight="700" font-size="13">' + esc(doc.title.length > 34 ? doc.title.slice(0, 33) + '...' : doc.title) + '</text>' +
+    '<text x="470" y="360" fill="var(--muted)" font-size="9">Document no. / Rev</text><text x="470" y="378" font-family="var(--font-mono)" font-size="11">' + esc(doc.no) + '</text><text x="470" y="400" font-weight="700" font-size="16">Rev ' + esc(doc.rev) + '</text>' +
+    '<text x="24" y="412" fill="var(--muted)" font-size="9">Schematic sample drawing for the demo. Not to scale.</text></g>';
+  (marks || []).forEach((m, i) => {
+    if (m.type === 'box') s += '<rect x="' + m.x + '" y="' + m.y + '" width="' + m.w + '" height="' + m.h + '" fill="rgba(192,39,95,.12)" stroke="var(--mark)" stroke-width="2"/><text x="' + (m.x + 4) + '" y="' + (m.y - 4) + '" font-size="12" font-weight="700" fill="var(--mark)">' + (i + 1) + '</text>';
+    else s += '<g><circle cx="' + m.x + '" cy="' + m.y + '" r="11" fill="var(--mark)" stroke="#fff" stroke-width="2"/><text x="' + m.x + '" y="' + (m.y + 4) + '" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">' + (i + 1) + '</text></g>';
+  });
+  if (draft) s += '<rect x="' + draft.x + '" y="' + draft.y + '" width="' + draft.w + '" height="' + draft.h + '" fill="rgba(192,39,95,.12)" stroke="var(--mark)" stroke-dasharray="4 3"/>';
+  return s + '</svg>';
+}
+function vwDoc() { return S.vw && P().docs.find(x => x.no === S.vw.no && x.rev === S.vw.rev); }
+function vwPrev(doc) { return P().docs.filter(x => x.no === doc.no && x.rev < doc.rev).sort((a, b) => a.rev < b.rev ? 1 : -1)[0] || null; }
+function viewerHtml() {
+  const doc = vwDoc(), prev = vwPrev(doc), v = S.vw; doc.markups = doc.markups || [];
+  const tb = (k, l) => '<button type="button" class="chip" data-act="vwTool" data-v="' + k + '" aria-pressed="' + (v.tool === k) + '">' + l + '</button>';
+  return '<div class="vwbar"><div class="chips">' + tb('pan', 'Look') + tb('pin', 'Add pin') + tb('box', 'Draw box') + '</div>' +
+    '<div class="chips"><button type="button" class="btn-g btn-s" data-act="vwZoom" data-v="-">&minus;</button><span class="fine num">' + Math.round(v.zoom * 100) + '%</span><button type="button" class="btn-g btn-s" data-act="vwZoom" data-v="+">+</button>' +
+    (prev ? '<button type="button" class="chip" data-act="vwGhost" aria-pressed="' + v.ghost + '">Compare with Rev ' + esc(prev.rev) + '</button>' : '<span class="fine">No earlier revision to compare</span>') + '</div></div>' +
+    '<p class="fine">' + (v.tool === 'pin' ? 'Click the drawing to drop a numbered pin.' : v.tool === 'box' ? 'Press and drag on the drawing to mark an area.' : 'Choose "Add pin" or "Draw box" to mark up this drawing.') + (v.ghost ? ' Magenta dashed lines show Rev ' + esc(prev.rev) + '.' : '') + '</p>' +
+    '<div class="vw" id="vw"><div style="width: ' + Math.round(v.zoom * 100) + '%; min-width: 280px">' + drawingSvg(doc, v.ghost ? prev : null, doc.markups, v.draft) + '</div></div>' +
+    '<div><h4>Markup (' + doc.markups.length + ')</h4>' + (doc.markups.length ? '<ul class="mkl">' + doc.markups.map((m, i) => '<li><span class="mkn">' + (i + 1) + '</span><input type="text" data-mi="' + i + '" value="' + esc(m.text) + '" placeholder="Add a note for ' + (m.type === 'box' ? 'this area' : 'this pin') + '" aria-label="Note ' + (i + 1) + '"><span class="fine">' + esc(m.by.split(' ')[0]) + '</span><button type="button" class="btn-g btn-s" data-act="mkDel" data-i="' + i + '">Remove</button></li>').join('') + '</ul>' : '<p class="fine">No markup yet.</p>') +
+    '<div class="btns"><button class="btn-g btn-s" type="button" data-act="mkExport"' + (doc.markups.length ? '' : ' disabled') + '>Download marked-up sheet</button><button class="btn-g btn-s" type="button" data-act="doc" data-no="' + esc(doc.no) + '" data-rev="' + esc(doc.rev) + '">Back to document</button></div></div>';
+}
+function paintViewer() { const b = $('ovB'); if (!b || !S.vw) return; const keep = $('vw') ? [$('vw').scrollLeft, $('vw').scrollTop] : [0, 0]; b.innerHTML = viewerHtml(); if ($('vw')) { $('vw').scrollLeft = keep[0]; $('vw').scrollTop = keep[1]; } }
+function openViewer(no, rev) {
+  const doc = P().docs.find(x => x.no === no && x.rev === rev); if (!doc) return;
+  S.vw = { no, rev, tool: 'pin', zoom: 1, ghost: false, draft: null }; S.tried.viewer = true;
+  const vk = S.proj + no + rev + 'v'; if (!S.viewed.has(vk)) { S.viewed.add(vk); audit('Opened drawing viewer', no + ' Rev ' + rev, doc.disc); }
+  openOv(no, doc.title + ', Rev ' + rev, viewerHtml());
+}
+function addMarkup(m) { const doc = vwDoc(); if (!doc) return; doc.markups = doc.markups || []; m.by = user().name; m.text = m.text || ''; doc.markups.push(m); audit('Marked up', doc.no + ' Rev ' + doc.rev, doc.disc); paintViewer(); const i = $('ovB').querySelector('[data-mi="' + (doc.markups.length - 1) + '"]'); if (i) i.focus(); }
+function svgPt(e) { const svg = $('dwg'), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const r = pt.matrixTransform(svg.getScreenCTM().inverse()); return { x: Math.round(Math.max(0, Math.min(600, r.x))), y: Math.round(Math.max(0, Math.min(440, r.y))) }; }
+let vwDrag = null;
+document.addEventListener('pointerdown', e => {
+  if (!S.vw || !e.target.closest || !e.target.closest('#dwg')) return;
+  if (S.vw.tool === 'pin') { const p = svgPt(e); addMarkup({ type: 'pin', x: p.x, y: p.y }); }
+  else if (S.vw.tool === 'box') { const p = svgPt(e); vwDrag = p; S.vw.draft = { x: p.x, y: p.y, w: 0, h: 0 }; e.preventDefault(); }
+});
+document.addEventListener('pointermove', e => {
+  if (!vwDrag || !$('dwg')) return; const p = svgPt(e);
+  S.vw.draft = { x: Math.min(vwDrag.x, p.x), y: Math.min(vwDrag.y, p.y), w: Math.abs(p.x - vwDrag.x), h: Math.abs(p.y - vwDrag.y) };
+  const old = $('dwg').querySelector('rect[stroke-dasharray="4 3"]'); if (old) old.remove();
+  $('dwg').insertAdjacentHTML('beforeend', '<rect x="' + S.vw.draft.x + '" y="' + S.vw.draft.y + '" width="' + S.vw.draft.w + '" height="' + S.vw.draft.h + '" fill="rgba(192,39,95,.12)" stroke="var(--mark)" stroke-dasharray="4 3"/>');
+});
+document.addEventListener('pointerup', () => {
+  if (!vwDrag) return; const d = S.vw && S.vw.draft; vwDrag = null; if (S.vw) S.vw.draft = null;
+  if (d && d.w > 8 && d.h > 8) addMarkup({ type: 'box', x: d.x, y: d.y, w: d.w, h: d.h }); else paintViewer();
+});
+document.addEventListener('change', e => { const i = e.target.dataset && e.target.dataset.mi; if (i !== undefined && S.vw) { const d = vwDoc(); if (d && d.markups[+i]) d.markups[+i].text = e.target.value; } });
+
+/* ================= Meetings ================= */
+function actionRows() { const out = []; P().meetings.filter(vis).forEach(m => m.actions.forEach((a, i) => out.push({ m, a, i }))); return out; }
+function viewMeet() {
+  const ms = P().meetings.filter(vis).sort((a, b) => a.date < b.date ? 1 : -1), acts = actionRows().sort((a, b) => (a.a.done - b.a.done) || (a.a.due < b.a.due ? -1 : 1));
+  return '<div class="ph"><div><h2>Meetings</h2><p class="sub">Minutes and the actions that come out of them</p></div><div class="btns"><button class="btn" type="button" data-act="newMeet">New meeting</button></div></div>' +
+    '<section class="panel"><div class="panel-h"><h3>Actions</h3><span class="fine">' + acts.filter(x => !x.a.done).length + ' open</span></div><div class="tablewrap"><table><thead><tr><th>Action</th><th>Owner</th><th>Due</th><th>From</th><th>Status</th><th></th></tr></thead><tbody>' +
+    (acts.map(({ m, a, i }) => '<tr><td>' + esc(a.text) + '</td><td>' + esc(a.owner) + '</td><td class="num">' + fmtDate(a.due) + '</td><td class="mono">' + esc(m.no) + '</td><td>' + pill(a.done ? 'Done' : a.due < TODAY ? 'Overdue' : 'Open') + '</td><td><button type="button" class="btn-g btn-s" data-act="actDone" data-no="' + esc(m.no) + '" data-i="' + i + '">' + (a.done ? 'Reopen' : 'Mark done') + '</button></td></tr>').join('') || '<tr><td colspan="6" class="empty">No actions yet.</td></tr>') + '</tbody></table></div></section>' +
+    ms.map(m => '<section class="panel wfc" tabindex="0" data-act="meet" data-no="' + esc(m.no) + '"><div class="panel-h"><div><h3>' + esc(m.title) + '</h3><p class="fine"><span class="mono">' + esc(m.no) + '</span> &middot; ' + fmtDate(m.date) + ' &middot; ' + esc(m.orgs.join(', ')) + '</p></div><span class="tagp">' + m.actions.length + ' action' + (m.actions.length === 1 ? '' : 's') + '</span></div><div class="wfb"><p>' + esc(m.minutes.length > 220 ? m.minutes.slice(0, 217) + '...' : m.minutes) + '</p></div></section>').join('');
+}
+function sheetMeet(no) {
+  const m = P().meetings.find(x => x.no === no); if (!m) return;
+  openOv(m.no, m.title, meta([['Date', fmtDate(m.date)], ['Present', esc(m.orgs.join(', '))]]) + '<div><h4>Minutes</h4><p class="body-text">' + esc(m.minutes) + '</p></div><div><h4>Actions</h4><ul class="hist">' +
+    (m.actions.map(a => '<li><span>' + esc(a.text) + ' <span class="fine">(' + esc(a.owner) + ', due ' + fmtDate(a.due) + ')</span></span>' + pill(a.done ? 'Done' : a.due < TODAY ? 'Overdue' : 'Open') + '</li>').join('') || '<li class="fine">No actions.</li>') + '</ul></div>');
+}
+function formMeet() {
+  openOv('New meeting', 'Record a meeting',
+    '<form class="form" data-form="meetNew" novalidate><div class="fr"><div class="f"><label for="mtTitle">Title</label><input type="text" id="mtTitle"></div><div class="f"><label for="mtDate">Date</label><input type="date" id="mtDate" value="' + TODAY + '"></div></div>' +
+    '<div class="f"><label>Present</label><div class="chk-col">' + ['Employer', 'Consultant', 'Main Contractor', 'MEP Subcontractor'].map(o => '<label class="chk"><input type="checkbox" class="mtOrg" value="' + o + '"' + (o === 'MEP Subcontractor' ? '' : ' checked') + '> ' + o + '</label>').join('') + '</div></div>' +
+    '<div class="f"><label for="mtMin">Minutes</label><textarea id="mtMin"></textarea></div>' +
+    '<div class="f"><label for="mtAct">Actions (one per line: what | who | due date)</label><textarea id="mtAct" placeholder="Submit the method statement | Main Contractor | 2026-10-20"></textarea></div>' +
+    '<p class="err" id="mtErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Save meeting</button></div></form>');
+}
+FORMS.meetNew = function () {
+  const p = P(), err = $('mtErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const title = $('mtTitle').value.trim(), date = $('mtDate').value, min = $('mtMin').value.trim();
+  if (!title) return fail('Enter a title.'); if (!date) return fail('Pick a date.'); if (!min) return fail('Write the minutes.');
+  const actions = [];
+  for (const line of $('mtAct').value.split('\n').map(x => x.trim()).filter(Boolean)) {
+    const [t, o, d] = line.split('|').map(x => (x || '').trim());
+    if (!t || !o || !/^\d{4}-\d{2}-\d{2}$/.test(d || '')) return fail('Each action needs three parts: what | who | due date (YYYY-MM-DD). Problem line: "' + line + '"');
+    actions.push({ text: t, owner: o, due: d, done: false });
+  }
+  const no = nextRef(p.meetings, 'no', p.code + '-MTG');
+  p.meetings.push({ no, title, date, disc: 'GEN', orgs: Array.from(document.querySelectorAll('.mtOrg:checked')).map(x => x.value), minutes: min, actions });
+  audit('Recorded meeting', no, 'GEN'); closeOv(); S.tab = 'meet'; renderApp(); toast('Saved ' + no);
+};
+
+/* ================= Bulk upload ================= */
+S.bulk = null;
+async function bulkLoad(files) {
+  const p = P(), rows = []; let n = 0;
+  const pickDisc = Object.keys(DISC).filter(k => canSee(S.role, k));
+  for (const f of files) {
+    let text = ''; try { text = await extractText(f); } catch (e) { text = ''; }
+    const nm = f.name.replace(/\.[^.]+$/, ''), m = /([A-Z]{3}-[A-Z]{3}-[A-Z]{3}-\d{4})/.exec(f.name.toUpperCase());
+    const dm = m && m[1].split('-')[1]; const disc = dm && pickDisc.includes(dm) ? dm : (pickDisc.includes('GEN') ? 'GEN' : pickDisc[0]);
+    const type = /dwg|drawing|plan/i.test(nm) ? 'Drawing' : /spec/i.test(nm) ? 'Specification' : /minute|mom/i.test(nm) ? 'Minutes' : /method|mst/i.test(nm) ? 'Method Statement' : 'Other';
+    const no = m ? m[1] : p.code + '-' + disc + '-DOC-' + String(9000 + (++n)).padStart(4, '0');
+    rows.push({ file: f, text, no, title: nm.replace(/_/g, ' '), disc, type });
+  }
+  S.bulk = rows; paintBulk();
+}
+function paintBulk() {
+  const types = ['Drawing', 'Specification', 'Method Statement', 'Plan', 'Minutes', 'ITP', 'Report', 'Other'];
+  const rows = S.bulk || [];
+  $('bkList').innerHTML = rows.length ? '<div class="tablewrap"><table><thead><tr><th>File</th><th>Number</th><th>Title</th><th>Discipline</th><th>Type</th></tr></thead><tbody>' + rows.map((r, i) =>
+    '<tr><td class="fine">' + esc(r.file.name) + '<br>' + (toChunks(r.text).length ? 'text read' : 'no text') + '</td><td><input type="text" class="bk" data-i="' + i + '" data-k="no" value="' + esc(r.no) + '"></td><td><input type="text" class="bk" data-i="' + i + '" data-k="title" value="' + esc(r.title) + '"></td>' +
+    '<td><select class="bk" data-i="' + i + '" data-k="disc">' + discOpts(r.disc) + '</select></td><td><select class="bk" data-i="' + i + '" data-k="type">' + types.map(t => '<option' + (t === r.type ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></td></tr>').join('') + '</tbody></table></div><p class="err" id="bkErr" hidden></p><div class="btns"><button class="btn" type="button" data-act="bulkGo">Upload ' + rows.length + ' file' + (rows.length === 1 ? '' : 's') + '</button></div>' : '';
+}
+function formBulk(files) {
+  openOv('Bulk upload', 'Upload several files at once',
+    '<p class="fine">Choose or drop several files. Check the numbers and titles, then upload them all. A number that already exists becomes the next revision and replaces the old one.</p><div class="filebox"><input type="file" id="bkFile" multiple aria-label="Files"></div><div id="bkList"></div>');
+  if (files && files.length) bulkLoad(files);
+}
+document.addEventListener('change', e => { if (e.target.id === 'bkFile') bulkLoad(Array.from(e.target.files || [])); });
+document.addEventListener('change', e => { const t = e.target; if (t.classList && t.classList.contains('bk') && S.bulk) S.bulk[+t.dataset.i][t.dataset.k] = t.value; });
+document.addEventListener('drop', e => {
+  const z = e.target.closest && e.target.closest('#dz'); const fl = e.dataTransfer && e.dataTransfer.files; if (!z || !fl || fl.length < 2) return;
+  e.preventDefault(); e.stopImmediatePropagation(); z.classList.remove('dz-on'); formBulk(Array.from(fl));
+});
+function bulkGo() {
+  const p = P(), rows = S.bulk || [], err = $('bkErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const seen = new Set();
+  for (const r of rows) {
+    r.no = r.no.trim().toUpperCase(); if (!r.no || !r.title.trim()) return fail('Every file needs a number and a title.');
+    if (seen.has(r.no)) return fail('The number ' + r.no + ' is used twice in this batch.'); seen.add(r.no);
+    if (!canSee(S.role, r.disc)) return fail('Your role cannot upload to the ' + (DISC[r.disc] || r.disc) + ' discipline.');
+  }
+  let sup = 0;
+  rows.forEach(r => {
+    const prev = p.docs.find(x => x.no === r.no && x.current); let rev = 'A';
+    if (prev) { rev = nextRev(prev.rev) || 'A'; prev.current = false; prev.status = 'SUP'; sup++; audit('Superseded', r.no + ' Rev ' + prev.rev, prev.disc); }
+    const ext = (r.file.name.split('.').pop() || 'file').toUpperCase().slice(0, 5);
+    p.docs.push({ no: r.no, title: r.title.trim(), disc: r.disc, type: r.type, rev, status: 'IFA', date: TODAY, chunks: toChunks(r.text), current: true, fmt: ext, size: fmtSize(r.file.size), by: user().org, uploaded: true, file: r.file });
+    audit('Uploaded', r.no + ' Rev ' + rev, r.disc);
+  });
+  S.tried.upload = true; S.bulk = null; closeOv(); S.tab = 'docs'; S.f = { q: '', disc: '', status: '', cur: true }; renderApp();
+  toast('Uploaded ' + rows.length + ' document' + (rows.length === 1 ? '' : 's') + (sup ? '. ' + sup + ' older revision' + (sup === 1 ? ' is' : 's are') + ' now superseded.' : '.'));
+}
+
+/* ================= Saved views ================= */
+function viewsHtml() {
+  const vs = S.views[S.proj] || [];
+  return vs.map((v, i) => '<span class="chip vchip"><button type="button" data-act="applyView" data-i="' + i + '">' + esc(v.name) + '</button><button type="button" class="x" data-act="delView" data-i="' + i + '" aria-label="Delete view ' + esc(v.name) + '">&times;</button></span>').join('') +
+    '<button type="button" class="btn-g btn-s" data-act="saveView">Save this view</button>';
+}
+const _fillDocs0 = fillDocs;
+fillDocs = function () { _fillDocs0(); const v = $('docViews'); if (v) v.innerHTML = viewsHtml(); };
+const _viewDocs1 = viewDocs;
+viewDocs = function () {
+  return _viewDocs1().replace('<div class="chips" id="docChips"></div>', '<div class="chips" id="docChips"></div><div class="chips" id="docViews" style="margin-top: 6px"></div>')
+    .replace('<button class="btn" type="button" data-act="upload">Upload document</button>', '<button class="btn-g" type="button" data-act="bulk">Bulk upload</button><button class="btn" type="button" data-act="upload">Upload document</button>');
+};
+FORMS.viewSave = function () {
+  const n = ($('vsName').value || '').trim(); if (!n) return;
+  (S.views[S.proj] = S.views[S.proj] || []).push({ name: n, f: Object.assign({}, S.f) }); closeOv(); renderMain(); toast('Saved view "' + n + '"');
+};
+
+/* ================= wiring ================= */
+const sh2 = x => x;
+Object.assign(HINTS, { meet: 'Record meetings and the actions agreed. Open actions that pass their due date show up in Alerts.' });
+Object.assign(NAVSUB, { meet: 'Minutes and actions' });
+KIND_ICON.meet = 'meet'; KIND_LABEL.meet = 'Meeting';
+const _openItem1 = openItem;
+openItem = function (kind, key, pg) { if (kind === 'meet') sheetMeet(key); else _openItem1(kind, key, pg); };
+const _srcMeta1 = srcMeta;
+srcMeta = function (c) { if (c.kind === 'meet') { const x = P().meetings.find(y => y.no === c.ref); return { kind: 'Meeting', title: x ? x.title : c.ref }; } return _srcMeta1(c); };
+const _openItems1 = openItems;
+openItems = function () {
+  const extra = []; P().meetings.filter(vis).forEach(m => m.actions.forEach(a => { if (!a.done) extra.push({ kind: 'meet', key: m.no, label: 'Action', title: a.text + ' (' + a.owner + ')', due: a.due }); }));
+  return _openItems1().concat(extra).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1);
+};
+const _findAll1 = findAll;
+findAll = function (q) { const out = _findAll1(q), s = q.trim().toLowerCase(); if (!s) return out; P().meetings.filter(vis).forEach(m => { if ((m.no + ' ' + m.title + ' ' + m.minutes).toLowerCase().includes(s)) out.push({ kind: 'meet', key: m.no, ref: m.no, title: m.title, tag: fmtDate(m.date) }); }); return out; };
+const _sheetDoc3 = sheetDoc;
+sheetDoc = function (no, rev, pg) {
+  _sheetDoc3(no, rev, pg);
+  const doc = P().docs.find(x => x.no === no && x.rev === rev), b = $('ovB'); if (!doc || !b || doc.type !== 'Drawing') return;
+  const bt = b.querySelector('.btns'); if (bt) bt.insertAdjacentHTML('afterbegin', '<button class="btn" type="button" data-act="viewDwg" data-no="' + esc(no) + '" data-rev="' + esc(rev) + '">View drawing</button>');
+};
+Object.assign(ACT, {
+  viewDwg(a) { openViewer(a.no, a.rev); },
+  vwTool(a) { S.vw.tool = a.v; paintViewer(); },
+  vwZoom(a) { S.vw.zoom = Math.max(0.5, Math.min(3, S.vw.zoom + (a.v === '+' ? 0.25 : -0.25))); paintViewer(); },
+  vwGhost() { S.vw.ghost = !S.vw.ghost; paintViewer(); },
+  mkDel(a) { const d = vwDoc(); if (d) { d.markups.splice(+a.i, 1); paintViewer(); } },
+  mkExport() {
+    const d = vwDoc(); if (!d || !d.markups.length) return;
+    const page = '<!doctype html><html><head><meta charset="utf-8"><title>' + esc(d.no) + ' markup</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#111;--fg:#13201a;--fg-2:#3a4a42;--muted:#69776f;--surface:#fff;--surface-2:#f5f3ec;--mark:#c0275f;--s1:#2a78d6;--s2:#eb6834}svg{max-width:900px;width:100%;border:1px solid #ccc}li{margin:4px 0}</style></head><body><h1>' + esc(d.no) + ' Rev ' + esc(d.rev) + '</h1><p>Sample data. Marked up by ' + esc(user().name) + ' on ' + TODAY + '.</p>' + drawingSvg(d, null, d.markups) + '<ol>' + d.markups.map(m => '<li>' + esc(m.text || '(no note)') + ' <small>(' + esc(m.by) + ')</small></li>').join('') + '</ol></body></html>';
+    saveFile(d.no + '_Rev' + d.rev + '_markup.html', page).then(ok => { if (ok) audit('Downloaded', d.no + ' Rev ' + d.rev + ' markup', d.disc); });
+  },
+  meet(a) { sheetMeet(a.no); }, newMeet() { formMeet(); },
+  actDone(a) { const m = P().meetings.find(x => x.no === a.no), t = m && m.actions[+a.i]; if (!t) return; t.done = !t.done; audit(t.done ? 'Completed action' : 'Reopened action', m.no, m.disc); renderMain(); renderBar(); },
+  bulk() { formBulk(); }, bulkGo() { bulkGo(); },
+  saveView() { openOv('Saved view', 'Save this view', '<form class="form" data-form="viewSave" novalidate><p class="fine">Saves the current search, discipline, status and "current only" choices so you can return to them in one click.</p><div class="f"><label for="vsName">Name</label><input type="text" id="vsName" placeholder="Structural drawings to approve"></div><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Save view</button></div></form>'); },
+  applyView(a) { const v = (S.views[S.proj] || [])[+a.i]; if (v) { S.f = Object.assign({}, v.f); renderMain(); } },
+  delView(a) { (S.views[S.proj] || []).splice(+a.i, 1); const e = $('docViews'); if (e) e.innerHTML = viewsHtml(); }
+});
+
+/* ---------- v10: meeting calendar, attendees, agenda, RSVP, .ics ---------- */
+const MT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MT_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MT_ORGS = ['Employer', 'Consultant', 'Main Contractor', 'MEP Subcontractor'];
+function peopleOf(code, orgs) { const out = []; (D[code].dir || []).forEach(d => { if (orgs.includes(d.org)) d.people.forEach(([n, r]) => out.push({ name: n, org: d.org, role: r, rsvp: 'Pending' })); }); return out; }
+function addMin(t, m) { const [h, mi] = t.split(':').map(Number), x = h * 60 + mi + m; return ('0' + (Math.floor(x / 60) % 24)).slice(-2) + ':' + ('0' + (x % 60)).slice(-2); }
+const mtSpan = m => m.time ? m.time + '–' + addMin(m.time, m.dur || 60) : 'Time not set';
+function mtDefaults(code, m, o) {
+  Object.assign(m, o);
+  m.attendees = peopleOf(code, m.orgs);
+  m.attendees.forEach((a, i) => { a.rsvp = m.status === 'Held' ? (i === 2 && m.apol ? 'Apologies' : 'Attended') : (o.rsvpSeed ? o.rsvpSeed[i] || 'Pending' : 'Pending'); });
+  delete m.rsvpSeed; delete m.apol;
+}
+(function seedMeetings() {
+  const A = D.awt.meetings, W = D.wap.meetings;
+  mtDefaults('awt', A[0], { time: '10:00', dur: 90, where: 'Site office, Level 1', status: 'Held', agenda: ['Progress against programme', 'Level 3 slab pour', 'Facade mock-up approval', 'MEP coordination'], apol: true });
+  mtDefaults('awt', A[1], { time: '09:30', dur: 60, where: 'Site office, Level 1', status: 'Held', agenda: ['Crane relocation', 'Column C7 repair', 'Safety audit'] });
+  mtDefaults('wap', W[0], { time: '11:00', dur: 60, where: 'Project office', status: 'Held', agenda: ['Wet well excavation', 'Dewatering', 'NCR review'] });
+  const add = (code, o) => { const p = D[code], m = { no: nextRef(p.meetings, 'no', p.code + '-MTG'), title: o.title, date: o.date, disc: 'GEN', orgs: o.orgs, minutes: '', actions: [] }; mtDefaults(code, m, { time: o.time, dur: o.dur, where: o.where, status: 'Scheduled', agenda: o.agenda, rsvpSeed: o.rsvpSeed }); p.meetings.push(m); };
+  add('awt', { title: 'Level 3 pour readiness', date: '2026-10-15', time: '10:00', dur: 60, where: 'Site office, Level 1', orgs: ['Consultant', 'Main Contractor', 'MEP Subcontractor'], agenda: ['Hot-weather method statement', 'Reinforcement inspection sign-off', 'Concrete delivery plan', 'MEP sleeves and fire dampers'], rsvpSeed: ['Accepted', 'Accepted', 'Pending', 'Accepted', 'Accepted'] });
+  add('awt', { title: 'MEP coordination review', date: '2026-10-19', time: '13:00', dur: 90, where: 'Video call (Teams)', orgs: ['Consultant', 'MEP Subcontractor'], agenda: ['Level 3 ceiling services clash', 'Reissue of coordination drawing'], rsvpSeed: ['Accepted', 'Pending', 'Pending'] });
+  add('awt', { title: 'Progress meeting No. 24', date: '2026-10-29', time: '10:00', dur: 90, where: 'Site office, Level 1', orgs: ['Employer', 'Consultant', 'Main Contractor'], agenda: ['Progress against programme', 'Open actions', 'Facade mock-up decision'] });
+  add('wap', { title: 'Progress meeting No. 9', date: '2026-10-14', time: '11:00', dur: 60, where: 'Project office', orgs: ['Employer', 'Consultant', 'Main Contractor'], agenda: ['Blinding NCR close-out', 'Wet well base slab', 'Programme update'], rsvpSeed: ['Accepted', 'Accepted'] });
+})();
+S.mtView = 'cal'; S.mtMonth = TODAY.slice(0, 7); S.mtDay = TODAY; S.mtWith = 'all'; S.mtEdit = null;
+const mtList = () => P().meetings.filter(vis).filter(m => S.mtWith === 'all' || m.orgs.includes(S.mtWith));
+const mtLive = m => m.status !== 'Cancelled';
+const mtPill = m => pill(m.status === 'Held' ? 'Held' : m.status === 'Cancelled' ? 'Cancelled' : m.date === TODAY ? 'Today' : 'Scheduled');
+function dayDiff(a, b) { return Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5); }
+function inDays(d) { const n = dayDiff(TODAY, d); return n === 0 ? 'today' : n === 1 ? 'tomorrow' : n > 0 ? 'in ' + n + ' days' : -n === 1 ? 'yesterday' : -n + ' days ago'; }
+function nextMeeting() { return mtList().filter(m => mtLive(m) && m.status === 'Scheduled' && m.date >= TODAY).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1)[0]; }
+function mtRow(m) { return '<div class="mrow" tabindex="0" data-act="meet" data-no="' + esc(m.no) + '"><div class="mrow-t"><b>' + fmtDate(m.date) + '</b><span>' + esc(mtSpan(m)) + '</span></div><div class="mrow-m"><h4>' + esc(m.title) + '</h4><p class="fine">' + esc(m.where || 'Location not set') + ' &middot; with ' + esc(m.orgs.join(', ')) + '</p></div>' + mtPill(m) + '</div>'; }
+function calGrid() {
+  const [y, mo] = S.mtMonth.split('-').map(Number), first = new Date(Date.UTC(y, mo - 1, 1)).getUTCDay(), n = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+  const ms = mtList().filter(mtLive), acts = actionRows().filter(x => !x.a.done);
+  let h = '<div class="cal" role="grid" aria-label="' + MT_MONTHS[mo - 1] + ' ' + y + '">' + MT_DAYS.map((d, i) => '<div class="cal-h' + (i > 4 ? ' wk' : '') + '">' + d + '</div>').join('');
+  for (let i = 0; i < first; i++) h += '<div class="cal-c off"></div>';
+  for (let d = 1; d <= n; d++) {
+    const ds = S.mtMonth + '-' + ('0' + d).slice(-2), dow = (first + d - 1) % 7, dm = ms.filter(m => m.date === ds).sort((a, b) => (a.time || '') < (b.time || '') ? -1 : 1), da = acts.filter(x => x.a.due === ds);
+    h += '<div class="cal-c' + (dow > 4 ? ' wk' : '') + (ds === TODAY ? ' today' : '') + (ds === S.mtDay ? ' sel' : '') + '" tabindex="0" data-act="mtDay" data-v="' + ds + '"><span class="cal-n">' + d + '</span>' +
+      dm.slice(0, 2).map(m => '<span class="cal-e' + (m.status === 'Held' ? ' held' : '') + '" data-act="meet" data-no="' + esc(m.no) + '" title="' + esc(m.title) + '"><i>' + esc(m.time || '') + '</i> ' + esc(m.title) + '</span>').join('') + (dm.length > 2 ? '<span class="cal-more">+' + (dm.length - 2) + ' more</span>' : '') +
+      (da.length ? '<span class="cal-d" title="' + da.length + ' action(s) due">' + da.length + ' due</span>' : '') + '</div>';
+  }
+  return h + '</div>';
+}
+function dayPanel() {
+  const ms = mtList().filter(mtLive).filter(m => m.date === S.mtDay).sort((a, b) => (a.time || '') < (b.time || '') ? -1 : 1), da = actionRows().filter(x => x.a.due === S.mtDay && !x.a.done);
+  return '<section class="panel"><div class="panel-h"><h3>' + fmtDate(S.mtDay) + ' <span class="fine">' + inDays(S.mtDay) + '</span></h3><button type="button" class="btn-g btn-s" data-act="newMeet" data-d="' + S.mtDay + '">Schedule on this day</button></div><div class="wfb">' +
+    (ms.map(mtRow).join('') || '<p class="fine">No meetings on this day.</p>') + (da.length ? '<h4 class="subh2">Actions due</h4><ul class="hist">' + da.map(({ m, a }) => '<li><span>' + esc(a.text) + ' <span class="fine">(' + esc(a.owner) + ')</span></span><span class="mono fine">' + esc(m.no) + '</span></li>').join('') + '</ul>' : '') + '</div></section>';
+}
+viewMeet = function () {
+  const all = mtList(), nx = nextMeeting(), acts = actionRows().sort((a, b) => (a.a.done - b.a.done) || (a.a.due < b.a.due ? -1 : 1));
+  const [y, mo] = S.mtMonth.split('-').map(Number), upcoming = all.filter(m => m.status === 'Scheduled').length, held = all.filter(m => m.status === 'Held').length;
+  const weekEnd = ((d) => { const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() + 7); return x.toISOString().slice(0, 10); })(TODAY);
+  const thisWeek = all.filter(m => m.status === 'Scheduled' && m.date >= TODAY && m.date <= weekEnd).length;
+  let h = '<div class="ph"><div><h2>Meetings</h2><p class="sub">Schedule, invite, minute and follow up</p></div><div class="btns"><button class="btn-g" type="button" data-act="mtIcsAll">Export calendar (.ics)</button><button class="btn" type="button" data-act="newMeet">New meeting</button></div></div>';
+  h += '<div class="statrow"><div><b>' + upcoming + '</b><span>upcoming</span></div><div><b>' + thisWeek + '</b><span>in the next 7 days</span></div><div><b>' + held + '</b><span>held, with minutes</span></div><div><b>' + acts.filter(x => !x.a.done).length + '</b><span>open actions</span></div></div>';
+  if (nx) h += '<section class="panel nextm" data-act="meet" data-no="' + esc(nx.no) + '" tabindex="0"><div class="nm-l"><span class="tagp on">Next meeting</span><h3>' + esc(nx.title) + '</h3><p class="fine">' + fmtDate(nx.date) + ', ' + esc(mtSpan(nx)) + ' &middot; ' + esc(nx.where || '') + '</p><p class="fine">With ' + esc(nx.orgs.join(', ')) + ' &middot; ' + nx.attendees.length + ' invited, ' + nx.attendees.filter(a => a.rsvp === 'Accepted').length + ' accepted</p></div><div class="nm-r"><b>' + inDays(nx.date) + '</b></div></section>';
+  h += '<div class="mt-tools"><div class="chips" role="group" aria-label="View">' + [['cal', 'Calendar'], ['list', 'List']].map(([k, l]) => '<button type="button" class="chip" data-act="mtView" data-v="' + k + '" aria-pressed="' + (S.mtView === k) + '">' + l + '</button>').join('') + '</div>' +
+    '<div class="chips" role="group" aria-label="Meeting with"><span class="fine" style="align-self:center">With:</span>' + [['all', 'Everyone']].concat(MT_ORGS.map(o => [o, o])).map(([k, l]) => '<button type="button" class="chip" data-act="mtWith" data-v="' + esc(k) + '" aria-pressed="' + (S.mtWith === k) + '">' + esc(l) + '</button>').join('') + '</div></div>';
+  if (S.mtView === 'cal') {
+    h += '<section class="panel"><div class="panel-h"><h3>' + MT_MONTHS[mo - 1] + ' ' + y + '</h3><div class="btns"><button type="button" class="btn-g btn-s" data-act="calNav" data-v="-1" aria-label="Previous month">&lsaquo; Prev</button><button type="button" class="btn-g btn-s" data-act="calNav" data-v="0">Today</button><button type="button" class="btn-g btn-s" data-act="calNav" data-v="1" aria-label="Next month">Next &rsaquo;</button></div></div><div class="wfb">' + calGrid() + '<p class="fine" style="margin-top:8px">Friday and Saturday are shaded as the weekend. Pick a day to see its meetings and the actions due.</p></div></section>' + dayPanel();
+  } else {
+    const up = all.filter(m => m.status === 'Scheduled').sort((a, b) => a.date < b.date ? -1 : 1), past = all.filter(m => m.status !== 'Scheduled').sort((a, b) => a.date < b.date ? 1 : -1);
+    h += '<section class="panel"><div class="panel-h"><h3>Upcoming</h3><span class="fine">' + up.length + '</span></div><div class="wfb">' + (up.map(mtRow).join('') || '<p class="fine">Nothing scheduled.</p>') + '</div></section>' +
+      '<section class="panel"><div class="panel-h"><h3>Past</h3><span class="fine">' + past.length + '</span></div><div class="wfb">' + (past.map(mtRow).join('') || '<p class="fine">No past meetings.</p>') + '</div></section>';
+  }
+  h += '<section class="panel"><div class="panel-h"><h3>Actions</h3><span class="fine">' + acts.filter(x => !x.a.done).length + ' open</span></div><div class="tablewrap"><table><thead><tr><th>Action</th><th>Owner</th><th>Due</th><th>From</th><th>Status</th><th></th></tr></thead><tbody>' +
+    (acts.map(({ m, a, i }) => '<tr><td>' + esc(a.text) + '</td><td>' + esc(a.owner) + '</td><td class="num">' + fmtDate(a.due) + '</td><td class="mono">' + esc(m.no) + '</td><td>' + pill(a.done ? 'Done' : a.due < TODAY ? 'Overdue' : 'Open') + '</td><td><button type="button" class="btn-g btn-s" data-act="actDone" data-no="' + esc(m.no) + '" data-i="' + i + '">' + (a.done ? 'Reopen' : 'Mark done') + '</button></td></tr>').join('') || '<tr><td colspan="6" class="empty">No actions yet.</td></tr>') + '</tbody></table></div></section>';
+  return h;
+};
+function icsOf(list) {
+  const z = s => s.replace(/-/g, ''), t = s => s.replace(':', '') + '00', esci = s => String(s || '').replace(/[\;,]/g, c => '\\' + c).replace(/\n/g, '\\n');
+  return 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Docket//Concept demo//EN\r\n' + list.map(m => 'BEGIN:VEVENT\r\nUID:' + m.no + '@docket.demo\r\nDTSTART:' + z(m.date) + 'T' + t(m.time || '09:00') + '\r\nDTEND:' + z(m.date) + 'T' + t(addMin(m.time || '09:00', m.dur || 60)) + '\r\nSUMMARY:' + esci(m.title) + '\r\nLOCATION:' + esci(m.where) + '\r\nDESCRIPTION:' + esci('Agenda: ' + (m.agenda || []).join('; ') + '\nWith: ' + m.orgs.join(', ')) + (m.status === 'Cancelled' ? '\r\nSTATUS:CANCELLED' : '') + '\r\nEND:VEVENT\r\n').join('') + 'END:VCALENDAR\r\n';
+}
+sheetMeet = function (no) {
+  const m = P().meetings.find(x => x.no === no); if (!m) return; const mine = user().org, sched = m.status === 'Scheduled';
+  const rs = a => a.rsvp === 'Accepted' || a.rsvp === 'Attended' ? 'ok' : a.rsvp === 'Declined' || a.rsvp === 'Apologies' ? 'bad' : 'warn';
+  openOv(m.no, m.title, '<div class="btns" style="margin-bottom:12px">' + mtPill(m) + '<button class="btn-g btn-s" type="button" data-act="mtIcs" data-no="' + esc(m.no) + '">Add to calendar (.ics)</button>' +
+    (sched ? '<button class="btn-g btn-s" type="button" data-act="mtResched" data-no="' + esc(m.no) + '">Reschedule</button><button class="btn-g btn-s" type="button" data-act="mtCancel" data-no="' + esc(m.no) + '">Cancel meeting</button>' : '') +
+    (m.status !== 'Cancelled' && !(m.minutes || '').trim() ? '<button class="btn btn-s" type="button" data-act="mtMinutes" data-no="' + esc(m.no) + '">Add minutes and actions</button>' : '') + '</div>' +
+    meta([['Date', fmtDate(m.date) + ' <span class="fine">(' + inDays(m.date) + ')</span>'], ['Time', esc(mtSpan(m)) + ' <span class="fine">(' + (m.dur || 60) + ' min)</span>'], ['Where', esc(m.where || 'Not set')], ['Meeting with', esc(m.orgs.join(', '))]]) +
+    '<div><h4>Invited (' + m.attendees.length + ')</h4><div class="tablewrap"><table><thead><tr><th>Name</th><th>Organisation</th><th>Role</th><th>Response</th><th></th></tr></thead><tbody>' +
+    m.attendees.map((a, i) => '<tr><td>' + esc(a.name) + '</td><td>' + esc(a.org) + '</td><td>' + esc(a.role) + '</td><td><span class="pill ' + rs(a) + '">' + esc(a.rsvp) + '</span></td><td>' + (sched && a.org === mine ? '<button type="button" class="btn-g btn-s" data-act="rsvp" data-no="' + esc(m.no) + '" data-i="' + i + '" data-v="Accepted">Accept</button> <button type="button" class="btn-g btn-s" data-act="rsvp" data-no="' + esc(m.no) + '" data-i="' + i + '" data-v="Declined">Decline</button>' : '') + '</td></tr>').join('') + '</tbody></table></div></div>' +
+    '<div><h4>Agenda</h4><ol class="agenda">' + ((m.agenda || []).map(x => '<li>' + esc(x) + '</li>').join('') || '<li class="fine">No agenda.</li>') + '</ol></div>' +
+    '<div><h4>Minutes</h4><p class="body-text">' + (esc(m.minutes) || '<span class="fine">' + (m.status === 'Cancelled' ? 'This meeting was cancelled.' : 'No minutes yet. Add them after the meeting.') + '</span>') + '</p></div>' +
+    '<div><h4>Actions</h4><ul class="hist">' + (m.actions.map(a => '<li><span>' + esc(a.text) + ' <span class="fine">(' + esc(a.owner) + ', due ' + fmtDate(a.due) + ')</span></span>' + pill(a.done ? 'Done' : a.due < TODAY ? 'Overdue' : 'Open') + '</li>').join('') || '<li class="fine">No actions.</li>') + '</ul></div>');
+};
+function actLines(txt, fail) {
+  const actions = [];
+  for (const line of txt.split('\n').map(x => x.trim()).filter(Boolean)) {
+    const [t, o, d] = line.split('|').map(x => (x || '').trim());
+    if (!t || !o || !/^\d{4}-\d{2}-\d{2}$/.test(d || '')) { fail('Each action needs three parts: what | who | due date (YYYY-MM-DD). Problem line: "' + line + '"'); return null; }
+    actions.push({ text: t, owner: o, due: d, done: false });
+  }
+  return actions;
+}
+function clash(p, date, time, dur, orgs, skip) {
+  if (!time) return null; const s = (+time.slice(0, 2)) * 60 + (+time.slice(3)), e = s + dur;
+  return p.meetings.find(m => m.no !== skip && mtLive(m) && m.date === date && m.time && m.orgs.some(o => orgs.includes(o)) && (() => { const a = (+m.time.slice(0, 2)) * 60 + (+m.time.slice(3)), b = a + (m.dur || 60); return s < b && a < e; })());
+}
+formMeet = function (d) {
+  openOv('New meeting', 'Schedule or record a meeting',
+    '<form class="form" data-form="meetNew" novalidate><div class="f"><label for="mtTitle">Title</label><input type="text" id="mtTitle"></div><div class="fr"><div class="f"><label for="mtDate">Date</label><input type="date" id="mtDate" value="' + (d || TODAY) + '"></div><div class="f"><label for="mtTime">Start time</label><input type="time" id="mtTime" value="10:00"></div></div>' +
+    '<div class="fr"><div class="f"><label for="mtDur">Length</label><select id="mtDur">' + [30, 45, 60, 90, 120].map(x => '<option value="' + x + '"' + (x === 60 ? ' selected' : '') + '>' + x + ' minutes</option>').join('') + '</select></div><div class="f"><label for="mtWhere">Where</label><input type="text" id="mtWhere" placeholder="Site office, or a video call link"></div></div>' +
+    '<div class="f"><label>Meeting with (everyone in these organisations is invited)</label><div class="chk-col">' + MT_ORGS.map(o => '<label class="chk"><input type="checkbox" class="mtOrg" value="' + o + '"' + (o === 'MEP Subcontractor' ? '' : ' checked') + '> ' + o + '</label>').join('') + '</div></div>' +
+    '<div class="f"><label for="mtAgenda">Agenda (one item per line)</label><textarea id="mtAgenda"></textarea></div>' +
+    '<div class="f"><label for="mtMin">Minutes (leave empty for a future meeting)</label><textarea id="mtMin"></textarea></div>' +
+    '<div class="f"><label for="mtAct">Actions (one per line: what | who | due date)</label><textarea id="mtAct" placeholder="Submit the method statement | Main Contractor | 2026-10-20"></textarea></div>' +
+    '<p class="err" id="mtErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Save meeting</button></div></form>');
+};
+FORMS.meetNew = function () {
+  const p = P(), err = $('mtErr'), fail = m => { err.textContent = m; err.hidden = false; };
+  const title = $('mtTitle').value.trim(), date = $('mtDate').value, time = $('mtTime').value, dur = +$('mtDur').value, min = $('mtMin').value.trim();
+  const orgs = Array.from(document.querySelectorAll('.mtOrg:checked')).map(x => x.value), future = date > TODAY;
+  if (!title) return fail('Enter a title.'); if (!date) return fail('Pick a date.'); if (!time) return fail('Pick a start time.'); if (!orgs.length) return fail('Choose who the meeting is with.');
+  if (!future && !min) return fail('This date is today or earlier, so write the minutes. Or pick a future date to schedule it.');
+  const c = clash(p, date, time, dur, orgs); if (c) return fail('This clashes with ' + c.title + ' (' + c.no + ') at ' + mtSpan(c) + ', which includes the same organisation.');
+  const actions = actLines($('mtAct').value, fail); if (!actions) return;
+  const no = nextRef(p.meetings, 'no', p.code + '-MTG'), m = { no, title, date, disc: 'GEN', orgs, minutes: min, actions };
+  mtDefaults(p.code.toLowerCase(), m, { time, dur, where: $('mtWhere').value.trim(), status: future ? 'Scheduled' : 'Held', agenda: $('mtAgenda').value.split('\n').map(x => x.trim()).filter(Boolean) });
+  p.meetings.push(m); S.mtMonth = date.slice(0, 7); S.mtDay = date;
+  audit(future ? 'Scheduled meeting' : 'Recorded meeting', no, 'GEN'); closeOv(); S.tab = 'meet'; renderApp(); toast((future ? 'Scheduled ' : 'Saved ') + no);
+};
+FORMS.mtMin2 = function () {
+  const p = P(), err = $('mtErr'), fail = m => { err.textContent = m; err.hidden = false; }, m = p.meetings.find(x => x.no === S.mtEdit); if (!m) return;
+  const min = $('mtMin').value.trim(); if (!min) return fail('Write the minutes.'); const acts = actLines($('mtAct').value, fail); if (!acts) return;
+  m.minutes = min; m.actions = m.actions.concat(acts); m.status = 'Held'; m.attendees.forEach(a => { if (a.rsvp === 'Accepted' || a.rsvp === 'Pending') a.rsvp = 'Attended'; else if (a.rsvp === 'Declined') a.rsvp = 'Apologies'; });
+  audit('Added minutes', m.no, 'GEN'); closeOv(); renderMain(); toast('Minutes saved for ' + m.no);
+};
+FORMS.mtResched2 = function () {
+  const p = P(), err = $('mtErr'), fail = x => { err.textContent = x; err.hidden = false; }, m = p.meetings.find(x => x.no === S.mtEdit); if (!m) return;
+  const date = $('mtDate').value, time = $('mtTime').value; if (!date || !time) return fail('Pick a date and time.'); if (date < TODAY) return fail('Choose today or a later date.');
+  const c = clash(p, date, time, m.dur || 60, m.orgs, m.no); if (c) return fail('This clashes with ' + c.title + ' (' + c.no + ') at ' + mtSpan(c) + '.');
+  m.date = date; m.time = time; m.attendees.forEach(a => { a.rsvp = 'Pending'; }); S.mtMonth = date.slice(0, 7); S.mtDay = date;
+  audit('Rescheduled meeting', m.no, 'GEN'); closeOv(); renderMain(); toast('Moved to ' + fmtDate(date) + ', ' + time + '. Invitees asked to respond again.');
+};
+Object.assign(ACT, {
+  newMeet(a) { formMeet(a && a.d); },
+  mtView(a) { S.mtView = a.v; renderMain(); }, mtWith(a) { S.mtWith = a.v; renderMain(); },
+  mtDay(a) { S.mtDay = a.v; renderMain(); },
+  calNav(a) { const v = +a.v; if (!v) { S.mtMonth = TODAY.slice(0, 7); S.mtDay = TODAY; } else { const [y, m] = S.mtMonth.split('-').map(Number), d = new Date(Date.UTC(y, m - 1 + v, 1)); S.mtMonth = d.toISOString().slice(0, 7); } renderMain(); },
+  rsvp(a) { const m = P().meetings.find(x => x.no === a.no), at = m && m.attendees[+a.i]; if (!at) return; at.rsvp = a.v; audit('Replied to meeting invite: ' + a.v, m.no, 'GEN'); sheetMeet(m.no); },
+  mtCancel(a) { const m = P().meetings.find(x => x.no === a.no); if (!m) return; m.status = 'Cancelled'; audit('Cancelled meeting', m.no, 'GEN'); closeOv(); renderMain(); toast(m.no + ' cancelled'); },
+  mtIcs(a) { const m = P().meetings.find(x => x.no === a.no); if (m) saveFile(m.no + '.ics', icsOf([m])); },
+  mtIcsAll() { const l = mtList(); saveFile(P().code + '_meetings.ics', icsOf(l)); },
+  mtMinutes(a) { S.mtEdit = a.no; openOv('Minutes', a.no, '<form class="form" data-form="mtMin2" novalidate><div class="f"><label for="mtMin">Minutes</label><textarea id="mtMin"></textarea></div><div class="f"><label for="mtAct">Actions (one per line: what | who | due date)</label><textarea id="mtAct" placeholder="Submit the method statement | Main Contractor | 2026-10-20"></textarea></div><p class="err" id="mtErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Save minutes</button></div></form>'); },
+  mtResched(a) { const m = P().meetings.find(x => x.no === a.no); if (!m) return; S.mtEdit = a.no; openOv('Reschedule', m.no, '<form class="form" data-form="mtResched2" novalidate><div class="fr"><div class="f"><label for="mtDate">New date</label><input type="date" id="mtDate" value="' + m.date + '"></div><div class="f"><label for="mtTime">New start time</label><input type="time" id="mtTime" value="' + (m.time || '10:00') + '"></div></div><p class="err" id="mtErr" hidden></p><div class="btns"><button class="btn-g" type="button" data-act="close">Cancel</button><button class="btn" type="submit">Move meeting</button></div></form>'); }
+});
+const _openItems2 = openItems;
+openItems = function () {
+  const up = []; P().meetings.filter(vis).forEach(m => { if (m.status === 'Scheduled' && dayDiff(TODAY, m.date) >= 0 && dayDiff(TODAY, m.date) <= 3) up.push({ kind: 'meet', key: m.no, label: 'Meeting', title: m.title + ' at ' + (m.time || '') + ', ' + inDays(m.date), due: m.date }); });
+  return _openItems2().concat(up).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1);
+};
+const _findAll2 = findAll;
+Object.assign(HINTS, { meet: 'Schedule meetings, see who is invited and who accepted, then add minutes afterwards. Actions feed Alerts, and Ask can answer from agenda and minutes.' });
 /* ---------- wiring ---------- */
 $('proj').innerHTML = Object.keys(D).map(k => '<option value="' + k + '">' + esc(D[k].code + ' · ' + D[k].name) + '</option>').join('');
 $('role').innerHTML = Object.keys(ROLES).map(k => '<option value="' + k + '">' + esc(ROLES[k].label) + '</option>').join('');
@@ -2365,5 +2799,5 @@ document.addEventListener('drop', e => {
 initSite();
 
 </script>
-</body>
+
 </html>
